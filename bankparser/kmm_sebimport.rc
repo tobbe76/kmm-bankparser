@@ -1,0 +1,10 @@
+<!DOCTYPE kpartgui>
+<kpartgui name="kmymoneyplugin-sebonline" version="2">
+  <MenuBar>
+    <Menu name="file">
+      <Menu name="import" append="import_merge">
+        <Action name="file_import_seb" />
+      </Menu>
+    </Menu>
+  </MenuBar>
+</kpartgui>
