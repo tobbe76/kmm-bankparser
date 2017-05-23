@@ -2,8 +2,12 @@
 kmymoney plugin, fetch bank statements using webkit
 
 Supported banks:
-SEB Sverige
-Norwegian Bank
+* SEB Sverige
+* Norwegian Bank
+
+Some support
+* Handelsbanken
+* Swedbank
 
 # How to build
 mkdir build
