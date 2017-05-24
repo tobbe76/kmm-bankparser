@@ -39,13 +39,13 @@ void KmmAccountTableModel::setAccountList(const KmmAccountInfo& acc)
     endResetModel();
 }
 
-void KmmAccountTableModel::setMappedBank(QString bank)
+void KmmAccountTableModel::setMappedBank(const QString &bank)
 {
     accInfo.setMappedBank(bank);
     dataChanged(createIndex(7, 1), createIndex(7, 1));
 }
 
-void KmmAccountTableModel::setMappedAccount(QString accountKey)
+void KmmAccountTableModel::setMappedAccount(const QString &accountKey)
 {
     accInfo.setMappedAccount(accountKey);
     dataChanged(createIndex(8, 1), createIndex(8, 1));
@@ -139,7 +139,7 @@ KmmAccountInfoWidget::KmmAccountInfoWidget(QWidget *parent) :
     tableModel = new KmmAccountTableModel();
 }
 
-void KmmAccountInfoWidget::setAccountInfo(KmmAccountInfo& info)
+void KmmAccountInfoWidget::setAccountInfo(const KmmAccountInfo& info)
 {
     ui->tableView->setModel(tableModel);
     tableModel->setAccountList(info);
@@ -147,12 +147,12 @@ void KmmAccountInfoWidget::setAccountInfo(KmmAccountInfo& info)
     ui->tableView->resizeRowsToContents();
 }
 
-void KmmAccountInfoWidget::setMappedBank(QString bank)
+void KmmAccountInfoWidget::setMappedBank(const QString& bank)
 {
     tableModel->setMappedBank(bank);
 }
 
-void KmmAccountInfoWidget::setMappedAccount(QString acc)
+void KmmAccountInfoWidget::setMappedAccount(const QString& acc)
 {
     tableModel->setMappedAccount(acc);
 }

@@ -37,7 +37,6 @@ public:
     bool login(QWebView* view);
     bool isLoggedIn();
     void processAccount(const AccountJob& accountJob);
-    bool isLoginFinished();
     void getAccountList(QList<BankAccountInfo> &accList);
 
  signals:

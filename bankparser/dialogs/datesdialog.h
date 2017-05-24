@@ -34,7 +34,7 @@ class DatesDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit DatesDialog(KmmAccountInfo &kmmAccountInfo, QWidget *parent = 0);
+    explicit DatesDialog(const KmmAccountInfo &kmmAccountInfo, QWidget *parent = 0);
     ~DatesDialog();
 
     DateInterval getDateInterval() const;

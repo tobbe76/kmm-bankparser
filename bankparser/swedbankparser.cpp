@@ -111,7 +111,7 @@ void SwedbankParser::parseAccountTables(QWebElement accountTables)
 
 bool SwedbankParser::parseStatements(QWebElement s)
 {
-
+    Q_UNUSED(s);
     return false;
 }
 
@@ -152,21 +152,4 @@ void SwedbankParser::getAccountList(QList<BankAccountInfo> &accList)
 {
     Q_UNUSED(accList);
     loginIfNeeded();
-}
-
-bool SwedbankParser::isLoginFinished()
-{
-  qDebug() << "SwedbankParser::isLoginFinished start" << accountPage->mainFrame()->url();
-
-  bool result = false;
-  
-  if(QUrl("https://demo.swedbank.se/app/privat/start-page") == accountPage->mainFrame()->url())
-  {
-    qDebug() << "SwedbankParser::isLoginFinished Done";
-  //  parseAccountTables();
-    result = true;
-  }
-  qDebug() << "SwedbankParser::isLoginFinished end";
-
-  return result;
 }

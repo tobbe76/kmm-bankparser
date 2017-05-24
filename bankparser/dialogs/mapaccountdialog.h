@@ -48,10 +48,10 @@ class MapAccountDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit MapAccountDialog(KmmAccountInfo &kmmAccountInfo, QWidget *parent = 0);
+    explicit MapAccountDialog(const KmmAccountInfo &kmmAccountInfo, QWidget *parent = 0);
     ~MapAccountDialog();
-    QString getAccountNr();
-    QString getSelectedParser();
+    QString getAccountNr() const;
+    QString getSelectedParser() const;
 
 private slots:
 

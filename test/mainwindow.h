@@ -19,8 +19,6 @@ public:
     ~MainWindow();
     
 public slots:
-    void epa();
-    void epa2();
     void accountFinished(MyMoneyStatement* s);
 
 private slots:

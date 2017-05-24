@@ -16,12 +16,12 @@
  ***************************************************************************/
 #include "dateinterval.h"
 
-bool DateInterval::isWithinInterval(QDate date) const
+bool DateInterval::isWithinInterval(const QDate date) const
 {
     return ((OldestDate <= date) && (date <= NewestDate));
 }
 
-bool DateInterval::isOlderThenInterval(QDate date) const
+bool DateInterval::isOlderThanInterval(const QDate date) const
 {
     return (date < OldestDate);
 }

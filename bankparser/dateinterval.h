@@ -28,8 +28,8 @@ public:
     DateInterval(const QDate oldestDate, const QDate newestDate) :
         OldestDate(oldestDate), NewestDate(newestDate) {};
 
-    bool isWithinInterval(QDate date) const;
-    bool isOlderThenInterval(QDate date) const;
+    bool isWithinInterval(const QDate date) const;
+    bool isOlderThanInterval(const QDate date) const;
 
     QDate getOldestDate() const { return OldestDate;};
     QDate getNewestDate() const { return NewestDate;};

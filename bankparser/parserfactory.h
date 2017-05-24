@@ -5,7 +5,7 @@
 class ParserFactory
 {
  public:
-  static BankParser* getParser(QString name);
+  static BankParser* getParser(const QString &name);
 
   static QStringList supportedParsers();
 };

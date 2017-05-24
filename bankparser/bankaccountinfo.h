@@ -26,7 +26,7 @@ class BankAccountInfo
 {
 public:
     BankAccountInfo() {}
-    BankAccountInfo(const QString name, const QString number, const QString key) :
+    BankAccountInfo(const QString &name, const QString &number, const QString &key) :
         Name(name), Number(number), Key(key) {}
 
     QString getName() const {return Name;};
@@ -34,11 +34,11 @@ public:
     QString getNumber() const {return Number;};
     QUrl getUrl() const {return Url;};
 
-    void setName(QString name) {Name = name;};
-    void setNumber(QString number) {Number = number;};
-    void setKey(QString key) {Key = key;};
-    void setId(QString id) {Id = id;};
-    void setUrl(QUrl url) {Url = url;};
+    void setName(const QString &name) {Name = name;};
+    void setNumber(const QString &number) {Number = number;};
+    void setKey(const QString &key) {Key = key;};
+    void setId(const QString &id) {Id = id;};
+    void setUrl(const QUrl &url) {Url = url;};
 
   private:
     QString Name;

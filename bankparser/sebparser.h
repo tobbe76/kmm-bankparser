@@ -37,7 +37,6 @@ public:
     bool login(QWebView* view);
     bool isLoggedIn();
     void processAccount(const AccountJob& accountJob);
-    bool isLoginFinished();
     void getAccountList(QList<BankAccountInfo> &accList);
 
  signals:
@@ -45,7 +44,7 @@ public:
     void loginFinished(bool result);
     
 public slots:
-    void endReqJs();
+    void endRequest();
   
 private slots:
     void login_loadFinished(bool ok);
@@ -55,7 +54,6 @@ private:
     void parseAccountTables();
     bool parseStatements(QWebFrame *view);
     
-    QTimer *timer;
     QWebPage* accountPage;
     QMap<QString, BankAccountInfo> accountMap;
     MyMoneyStatement* s;

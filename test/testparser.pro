@@ -14,9 +14,10 @@ TEMPLATE = app
 INCLUDEPATH += ../bankparser
 INCLUDEPATH += ../bankparser/dialogs
 
+QMAKE_CXXFLAGS += -std=c++11
+
 SOURCES += main.cpp\
   mainwindow.cpp \
-  qwebpagechrome.cpp \
   ../bankparser/bankparser.cpp \
   ../bankparser/debugwebpage.cpp \
   ../bankparser/sebparser.cpp \
@@ -31,7 +32,6 @@ SOURCES += main.cpp\
   ../bankparser/dialogs/logindialog.cpp
 
 HEADERS  += mainwindow.h \
-    qwebpagechrome.h \
     ../bankparser/logininterface.h \
     ../bankparser/sebparser.h \
     ../bankparser/kmmaccountinfo.h \

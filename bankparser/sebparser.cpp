@@ -71,20 +71,20 @@ SebParser::~SebParser()
 
 void SebParser::parseAccountTables()
 {
-    const QString sebAccountListParser =
-            "var accDiv = document.getElementById(\"IKPMaster_MainPlaceHolder_ucAccountTable_pnlAccounts\");"
-            "var tables = accDiv.getElementsByTagName(\"table\");"
-            "var epa = [];"
-            "for(var i = 0; i < tables.length; i++) {"
-            "  var tab = tables[i].tBodies[0];"
-            "  for(var j = 0; j < tab.rows.length; j++) { "
-            "     var href = tab.rows[j].cells[0].getElementsByTagName(\"a\")[0].href;"
-            "     epa.push({Link:href, Name:tab.rows[j].cells[0].innerText.trim(), Number:tab.rows[j].cells[1].innerText.trim()});"
-            "   }"
-            "}"
-            "epa;";
+    const QString accountListParser = R"(
+            var accDiv = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountTable_pnlAccounts");
+            var tables = accDiv.getElementsByTagName("table");
+            var accArr = [];
+            for(var i = 0; i < tables.length; i++) {
+                var tab = tables[i].tBodies[0];
+                for(var j = 0; j < tab.rows.length; j++) {
+                    var href = tab.rows[j].cells[0].getElementsByTagName("a")[0].href;
+                    accArr.push({Link:href, Name:tab.rows[j].cells[0].innerText.trim(), Number:tab.rows[j].cells[1].innerText.trim()});
+                }
+            }
+            accArr;)";
 
-    QVariant res = accountPage->mainFrame()->evaluateJavaScript(sebAccountListParser);
+    QVariant res = accountPage->mainFrame()->evaluateJavaScript(accountListParser);
 
     QList<QVariant> list = res.toList();
     for(int i = 0; i < list.size(); i++)
@@ -101,40 +101,38 @@ void SebParser::parseAccountTables()
 
 bool SebParser::parseStatements(QWebFrame* view)
 {
-    QString sebTransactionParser =
-            "var accDiv = document.getElementById(\"IKPMaster_MainPlaceHolder_ucAccountEvents_DataTable\");"
-            "var tables = accDiv.getElementsByTagName(\"table\");"
-            "var epa = [];"
-            "var rows = tables[0].tBodies[0].rows;"
-            "for(var i = 2; i < rows.length; i = i +2) {"
-            "  var trans = rows[i];"
-            "  var date = trans.cells[1].innerText;"
-            "  var name = trans.cells[2].innerText.split('/')[0];"
-            "  var sum  = trans.cells[4].innerText;"
-            "  if(sum.length == 0) {"
-            "    sum = trans.cells[3].innerText;"
-            "  }"
-            "  var extra = \"Empty\";"
-            "  if(rows[i+1].cells[1].getElementsByClassName(\"key-value-list\").length > 0) {"
-            "    extra = rows[i+1].cells[1].getElementsByClassName(\"key-value-list\")[0].getElementsByTagName(\"span\")[0].innerText;"
-            "  }"
-            "  epa.push({Name:name, Date:date, Sum:sum, Extra:extra});"
-            "}"
-            "epa;";
+    QString sebTransactionParser = R"(
+            var accDiv = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_DataTable");
+            var tables = accDiv.getElementsByTagName("table");
+            var transArr = [];
+            var rows = tables[0].tBodies[0].rows;
+            for(var i = 2; i < rows.length; i = i +2) {
+                var trans = rows[i];
+                var date = trans.cells[1].innerText;
+                var name = trans.cells[2].innerText.split('/')[0];
+                var sum  = trans.cells[4].innerText;
+                if(sum.length == 0) {
+                    sum = trans.cells[3].innerText;
+                }
+                var extra = "Empty";
+                if(rows[i+1].cells[1].getElementsByClassName("key-value-list").length > 0) {
+                    extra = rows[i+1].cells[1].getElementsByClassName("key-value-list")[0].getElementsByTagName("span")[0].innerText;
+                }
+                transArr.push({Name:name, Date:date, Sum:sum, Extra:extra});
+            }
+            transArr;)";
 
 
     QVariant res = view->evaluateJavaScript(sebTransactionParser);
 
     QList<QVariant> list = res.toList();
-    qDebug() << "Interval " << dateInterval;
+
     for(int i = 0; i < list.size(); i++)
     {
-
         QMap<QString, QVariant> map = list[i].toMap();
-        qDebug() << "APA2222 " << map["Name"].toString() << " " << map["Date"].toString() << " " << map["Sum"].toString() << " " << map["Extra"].toString();
         QDate date = QDate::fromString(map["Date"].toString(), "yyyy-MM-dd");
 
-        if(dateInterval.isOlderThenInterval(date))
+        if(dateInterval.isOlderThanInterval(date))
         {
             qDebug() << "Finished date " << date << "wanted interval " << dateInterval;
             return true;
@@ -151,10 +149,10 @@ bool SebParser::parseStatements(QWebFrame* view)
     return false;
 }
 
-void SebParser::endReqJs()
+void SebParser::endRequest()
 {
     accountPage->mainFrame()->evaluateJavaScript
-                            ("Sys.WebForms.PageRequestManager.getInstance().remove_pageLoaded(MainWindow.epa);");
+                            ("Sys.WebForms.PageRequestManager.getInstance().remove_endRequest( SebParser.endRequest );");
     loadFinished(true);
 }
 
@@ -172,18 +170,16 @@ void SebParser::loadFinished(bool ok)
                 accountFinished(s);
             }
             else {
-                QWebElement next = accountPage->mainFrame()->findFirstElement("div.pagination");
-                QWebElement link = next.findFirst("a[id=IKPMaster_MainPlaceHolder_ucAccountEvents_BTN_NEXT]");
-                QString href = link.attribute("href");
-                qDebug() << "MORE IS NEEDED " << href;
+                qDebug() << "MORE IS NEEDED ";
                 accountPage->mainFrame()->addToJavaScriptWindowObject("SebParser", this);
-                QString sebRegisterEvent =
-                        "Sys.WebForms.PageRequestManager.getInstance().add_endRequest( SebParser.endReqJs );";
 
-                const QString clickEvent =
-                        "var event = document.createEvent('Event');"
-                        "event.initEvent('click', true, true);"
-                        "document.getElementById(\"IKPMaster_MainPlaceHolder_ucAccountEvents_BTN_NEXT\").dispatchEvent(event);";
+                const QString sebRegisterEvent = R"(
+                        Sys.WebForms.PageRequestManager.getInstance().add_endRequest( SebParser.endRequest );)";
+
+                const QString clickEvent = R"(
+                        var event = document.createEvent('Event');
+                        event.initEvent('click', true, true);
+                        document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_BTN_NEXT").dispatchEvent(event);)";
 
                 QVariant res = accountPage->mainFrame()->evaluateJavaScript(sebRegisterEvent);
                 res = accountPage->mainFrame()->evaluateJavaScript(clickEvent);

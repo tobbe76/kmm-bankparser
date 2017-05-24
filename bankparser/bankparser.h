@@ -48,9 +48,9 @@ private:
 class PendingAccounJobs
 {
 public:
-    bool isPendingJob();
+    bool isPendingJob() const;
     AccountJob getJob();
-    void addJob(AccountJob job);
+    void addJob(const AccountJob& job);
 private:
     QList<AccountJob> jobList;
 };
@@ -67,7 +67,7 @@ public:
     virtual bool isLoggedIn() = 0;
 
     /* Parse the statements for all accounts */
-    void processAccount(KmmAccountInfo& accountInfo, DateInterval dateInterval);
+    void processAccount(KmmAccountInfo& accountInfo, const DateInterval& dateInterval);
 
     virtual void getAccountList(QList<BankAccountInfo> &accList) = 0;
 
@@ -78,7 +78,7 @@ protected:
     void loginIfNeeded();
     void accountFinished(MyMoneyStatement* s);
     virtual void processAccount(const AccountJob& accountJob) = 0;
-    void addStatement(MyMoneyStatement *s, QDate date, QString payee, QString sum, QString memo, quint16 verif);
+    void addStatement(MyMoneyStatement *s, const QDate& date, const QString& payee, const QString& sum, const QString& memo, const quint16& verif);
     bool isParsing;
     PendingAccounJobs pendingAccounJobs;
 };

@@ -30,8 +30,8 @@ class KmmAccountTableModel : public QAbstractTableModel
 public:
     KmmAccountTableModel(QObject *parent = 0) : QAbstractTableModel(parent) {}
     void setAccountList(const KmmAccountInfo& acc);
-    void setMappedBank(QString bank);
-    void setMappedAccount(QString accountKey);
+    void setMappedBank(const QString& bank);
+    void setMappedAccount(const QString &accountKey);
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
@@ -54,10 +54,10 @@ class KmmAccountInfoWidget : public QWidget
 public:
     explicit KmmAccountInfoWidget(QWidget *parent = 0);
     ~KmmAccountInfoWidget();
-    void setAccountInfo(KmmAccountInfo& info);
+    void setAccountInfo(const KmmAccountInfo& info);
 
-    void setMappedBank(QString bank);
-    void setMappedAccount(QString acc);
+    void setMappedBank(const QString &bank);
+    void setMappedAccount(const QString &acc);
 
 
 private:

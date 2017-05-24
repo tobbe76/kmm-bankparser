@@ -48,7 +48,6 @@ public slots:
     void epa();
   
 private slots:
-    bool isLoginFinished();
     void loadFinished(bool arg1);
     void timeout();
 

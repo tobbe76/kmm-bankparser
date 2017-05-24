@@ -20,7 +20,7 @@
 #include <qwebelement.h>
 #include <qwebframe.h>
 
-DatesDialog::DatesDialog(KmmAccountInfo &kmmAccountInfo, QWidget *parent) :
+DatesDialog::DatesDialog(const KmmAccountInfo &kmmAccountInfo, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DatesDialog)
 {

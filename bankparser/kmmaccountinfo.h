@@ -26,7 +26,7 @@ class KmmAccountInfo
 
 public:
     KmmAccountInfo() {}
-    KmmAccountInfo(QString name, QString number, QString institution, QString id, QDate reconciled, QDate opened, QString mappedBank, QString mappedAccount) :
+    KmmAccountInfo(const QString &name, const QString &number, const QString &institution, const QString &id, const QDate &reconciled, const QDate &opened, const QString &mappedBank, const QString &mappedAccount) :
         Name(name), Number(number), Institution(institution), Id(id), ReconciledDate(reconciled), OpenedDate(opened), MappedBank(mappedBank), MappedAccount(mappedAccount) {}
   
     QString getName() const {return Name;};
@@ -40,8 +40,8 @@ public:
     QString getMappedBank() const {return MappedBank;};
     QString getMappedAccount() const {return MappedAccount;};
 
-    void setMappedBank(const QString bank) { MappedBank = bank;};
-    void setMappedAccount(const QString acc) { MappedAccount = acc;};
+    void setMappedBank(const QString &bank) { MappedBank = bank;};
+    void setMappedAccount(const QString &acc) { MappedAccount = acc;};
 
 private:
     QString Name;

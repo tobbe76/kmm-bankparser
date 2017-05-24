@@ -97,32 +97,30 @@ bool NorwegianParser::parseStatements(QWebFrame* frame)
 {
     qDebug() << "NorwegianParser::parseStatements begin";
 
-    const QString norwegianTransactionParser =
-            "var accDiv = document.getElementById(\"transactions\");"
-            "var tables = accDiv.getElementsByTagName(\"table\");"
-            "var epa = [];"
-            "var bodies = tables[0].tBodies;"
-            "for(var i = 0; i < bodies.length; i++) {"
-            "  var trans = bodies[i];"
-            "  var date = trans.rows[0].cells[0].innerText;"
-            "  var name = trans.rows[0].cells[1].getElementsByTagName(\"div\")[0].innerText;"
-            "  var type = trans.rows[0].cells[1].getElementsByTagName(\"div\")[1].innerText;"
-            "  var sum  = trans.rows[0].cells[4].innerText;"
-            "  epa.push({Name:name, Date:date, Sum:sum, Extra:type});"
-            "}"
-            "epa;";
+    const QString norwegianTransactionParser = R"(
+            var accDiv = document.getElementById("transactions");
+            var tables = accDiv.getElementsByTagName("table");
+            var accArr = [];
+            var bodies = tables[0].tBodies;
+            for(var i = 0; i < bodies.length; i++) {
+              var trans = bodies[i];
+              var date = trans.rows[0].cells[0].innerText;
+              var name = trans.rows[0].cells[1].getElementsByTagName("div")[0].innerText;
+              var type = trans.rows[0].cells[1].getElementsByTagName("div")[1].innerText;
+              var sum  = trans.rows[0].cells[4].innerText;
+              accArr.push({Name:name, Date:date, Sum:sum, Extra:type});
+            }
+            accArr;)";
 
     QVariant res = frame->evaluateJavaScript(norwegianTransactionParser);
 
     QList<QVariant> list = res.toList();
     for(int i = 0; i < list.size(); i++)
     {
-
         QMap<QString, QVariant> map = list[i].toMap();
-        qDebug() << "APA1111 " << map["Name"].toString() << " " << map["Date"].toString() << " " << map["Sum"].toString() << " " << map["Extra"].toString();
         QDate date = QDate::fromString(map["Date"].toString(), "yyyy-MM-dd");
 
-        if(dateInterval.isOlderThenInterval(date))
+        if(dateInterval.isOlderThanInterval(date))
         {
             qDebug() << "NorwegianParser::parseStatements Finished date " << date << "wanted interval " << dateInterval;
             return true;
@@ -177,25 +175,24 @@ void NorwegianParser::attachObject()
 
     accountPage->mainFrame()->addToJavaScriptWindowObject("MainWindow", this);
 
-    const QString ajaxStopEvent =
-            "$( document ).ajaxStop(function() { %1 });"
-            "console.log(\"HHHHHHHHHHHHHHHHH\");";
+    const QString ajaxStopEvent = "$( document ).ajaxStop(function() { %1 });";
     accountPage->mainFrame()->evaluateJavaScript(ajaxStopEvent.arg("MainWindow.ajaxStopEvent();"));
 
     qDebug() << "NorwegianParser::attachObject done";
 }
 
-void NorwegianParser::selectYear(QString wantedYear)
+void NorwegianParser::selectYear(const QString &wantedYear)
 {
     qDebug() << "NorwegianParser::selectYear begin " << wantedYear;
-    const QString changeEvent =
-            "var event = document.createEvent('Event');"
-            "event.initEvent('change', true, true);"
-            "document.getElementsByName(\"YearList\")[0].dispatchEvent(event);";
 
-    QString javaStr = "document.getElementsByName(\"YearList\")[0].value = \"" + wantedYear + "\"";
+    const QString changeEvent = R"(
+            var event = document.createEvent('Event');
+            event.initEvent('change', true, true);
+            document.getElementsByName("YearList")[0].dispatchEvent(event);)";
 
-    accountPage->mainFrame()->evaluateJavaScript(javaStr);
+   const QString selectYear = R"(document.getElementsByName("YearList")[0].value = "%1")";
+
+    accountPage->mainFrame()->evaluateJavaScript(selectYear.arg(wantedYear));
     accountPage->mainFrame()->evaluateJavaScript(changeEvent);
 
     qDebug() << "NorwegianParser::selectYear end";

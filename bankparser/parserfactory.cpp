@@ -9,7 +9,7 @@ static NorwegianParser *norwegianparser = NULL;
 static SwedbankParser *swedbankparser = NULL;
 static HandelsbankenParser *handelsbankenParser = NULL;
 
-BankParser* ParserFactory::getParser(QString name)
+BankParser* ParserFactory::getParser(const QString& name)
 {
   if(name == "SEB")
   {

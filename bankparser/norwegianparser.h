@@ -37,7 +37,6 @@ public:
     bool login(QWebView* view);
     bool isLoggedIn();
     void processAccount(const AccountJob& accountJob);
-    bool isLoginFinished();    
     void getAccountList(QList<BankAccountInfo> &accList);
 
 public slots:
@@ -55,7 +54,7 @@ private slots:
 private:
     void parseAccountTables();
     bool parseStatements(QWebFrame *frame);
-    void selectYear(QString wantedYear);
+    void selectYear(const QString &wantedYear);
 
     QMap<QString, BankAccountInfo> accountMap;
     int year;

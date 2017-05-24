@@ -51,7 +51,7 @@ QVariant AccountListModel::data(const QModelIndex &index, int role) const
     }
 }
 
-MapAccountDialog::MapAccountDialog(KmmAccountInfo& kmmAccountInfo, QWidget *parent) :
+MapAccountDialog::MapAccountDialog(const KmmAccountInfo& kmmAccountInfo, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::MapAccountDialog)
 {
@@ -65,16 +65,14 @@ MapAccountDialog::MapAccountDialog(KmmAccountInfo& kmmAccountInfo, QWidget *pare
     accountListModel = new AccountListModel();
     ui->bankAccList->setModel(accountListModel);
     connect(ui->bankparserBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(bankparserBox_currentIndexChanged(QString)));
-    qDebug() << "Finished construct";
-
 }
 
-QString MapAccountDialog::getAccountNr()
+QString MapAccountDialog::getAccountNr() const
 {
   return accountKey;
 }
 
-QString MapAccountDialog::getSelectedParser()
+QString MapAccountDialog::getSelectedParser() const
 {
   return bank;
 }

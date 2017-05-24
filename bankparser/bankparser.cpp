@@ -18,7 +18,7 @@
 #include "bankparser.h"
 #include "logindialog.h"
 
-bool PendingAccounJobs::isPendingJob()
+bool PendingAccounJobs::isPendingJob() const
 {
     return !jobList.isEmpty();
 }
@@ -28,7 +28,7 @@ AccountJob PendingAccounJobs::getJob()
     return jobList.takeFirst();
 }
 
-void PendingAccounJobs::addJob(AccountJob job)
+void PendingAccounJobs::addJob(const AccountJob &job)
 {
     jobList.append(job);
 }
@@ -64,7 +64,7 @@ void BankParser::accountFinished(MyMoneyStatement *s)
     }
 }
 
-void BankParser::addStatement(MyMoneyStatement *s, QDate date, QString payee, QString sum, QString memo, quint16 verif)
+void BankParser::addStatement(MyMoneyStatement *s, const QDate &date, const QString &payee, const QString &sum, const QString &memo, const quint16 &verif)
 {
     MyMoneyStatement::Transaction t;
 
@@ -77,9 +77,8 @@ void BankParser::addStatement(MyMoneyStatement *s, QDate date, QString payee, QS
     s->m_listTransactions.append(t);
 }
 
-void BankParser::processAccount(KmmAccountInfo& accountInfo, DateInterval dateInterval)
+void BankParser::processAccount(KmmAccountInfo& accountInfo, const DateInterval &dateInterval)
 {
-    qDebug() << "APA APA start" << isParsing;
     loginIfNeeded();
     AccountJob job(accountInfo, dateInterval);
     if(isParsing)

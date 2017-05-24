@@ -26,13 +26,12 @@
 HandelsbankenParser::HandelsbankenParser() : BankParser()
 {
     loggedInOk = false;
+    accountPage = new DebugWebPage(this);
 }
 
 bool HandelsbankenParser::login(QWebView* view)
 {
     qDebug() << "HandelsbankenParser::login begin";
-  
-    accountPage = new DebugWebPage(this);
 
     view->setPage(accountPage);
 
@@ -68,23 +67,24 @@ void HandelsbankenParser::processAccount(const AccountJob &accountJob)
 
 HandelsbankenParser::~HandelsbankenParser()
 {
+    delete accountPage;
 }
 
 void HandelsbankenParser::parseAccountTables()
 {
-    const QString sebAccountListParser =
-            "var accDiv = document.getElementById(\"account_cards_m\");"
-            "var tables = accDiv.getElementsByTagName(\"table\");"
-            "var rows = tables[0].tBodies[0].rows;"
-            "var epa = [];"
-            "for(var i = 0; i < rows.length; i++) {"
-            "  var href = rows[i].cells[0].getElementsByTagName(\"a\")[0].href;"
-            "  var number = rows[i].cells[0].getElementsByTagName(\"span\")[0].innerHTML.split('-')[1].trim();"
-            "  epa.push({Link:href, Name:rows[i].cells[0].innerText.trim(), Number:number});"
-            "}"
-            "epa;";
+    const QString accountListParser = R"(
+            var accDiv = document.getElementById("account_cards_m");
+            var tables = accDiv.getElementsByTagName("table");
+            var rows = tables[0].tBodies[0].rows;
+            var accArr = [];
+            for(var i = 0; i < rows.length; i++) {
+                var href = rows[i].cells[0].getElementsByTagName("a")[0].href;
+                var number = rows[i].cells[0].getElementsByTagName("span")[0].innerHTML.split('-')[1].trim();
+                accArr.push({Link:href, Name:rows[i].cells[0].innerText.trim(), Number:number});
+            }
+            accArr;)";
 
-    QVariant res = accountPage->mainFrame()->evaluateJavaScript(sebAccountListParser);
+    QVariant res = accountPage->mainFrame()->evaluateJavaScript(accountListParser);
 
     QList<QVariant> list = res.toList();
     for(int i = 0; i < list.size(); i++)
@@ -101,29 +101,27 @@ void HandelsbankenParser::parseAccountTables()
 
 bool HandelsbankenParser::parseStatements(QWebFrame* view)
 {
-    QString sebTransactionParser =
-            "var accDiv = document.getElementsByTagName(\"form\");"
-            "var epa = [];"
-            "for(var j = 0; j < accDiv.length; j++) {"
-            "  if(\"accounttransactions\" == accDiv[j].getAttribute(\"name\")) {"
-            "    var tables = accDiv[j].getElementsByTagName(\"table\");"
-            "    console.log(tables.length);"
-            "    var rows = tables[12].tBodies[0].rows;"
-            "    var epa = [];"
-            "    for(var i = 2; i < rows.length; i++) {"
-            "      var trans = rows[i];"
-            "      var date = trans.cells[2].innerText;"
-            "      var name = trans.cells[3].innerText;"
-            "      var sum  = trans.cells[4].innerText;"
-            "      var extra = \"Empty\";"
-            "      epa.push({Name:name, Date:date, Sum:sum, Extra:extra});"
-            "    }"
-            "  }"
-            "}"
-            "epa;";
+    QString transactionParser = R"(
+            var accDiv = document.getElementsByTagName("form");
+            var transArr = [];
+            for(var j = 0; j < accDiv.length; j++) {
+                if("accounttransactions" == accDiv[j].getAttribute("name")) {
+                    var tables = accDiv[j].getElementsByTagName("table");
+                    var rows = tables[12].tBodies[0].rows;
+                    for(var i = 2; i < rows.length; i++) {
+                        var trans = rows[i];
+                        var date = trans.cells[2].innerText;
+                        var name = trans.cells[3].innerText;
+                        var sum  = trans.cells[4].innerText;
+                        var extra = "Empty";
+                        transArr.push({Name:name, Date:date, Sum:sum, Extra:extra});
+                    }
+                }
+            }
+            transArr;)";
 
 
-    QVariant res = view->evaluateJavaScript(sebTransactionParser);
+    QVariant res = view->evaluateJavaScript(transactionParser);
 
     QList<QVariant> list = res.toList();
     for(int i = 0; i < list.size(); i++)
