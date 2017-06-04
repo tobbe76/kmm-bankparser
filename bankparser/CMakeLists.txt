@@ -32,7 +32,9 @@ include( MacroLibrary )
 include( GenerateExportHeader )
 
 
-include_directories( ${KDE4_INCLUDES} "/usr/local/include/kmymoney")
+include_directories( ${KDE4_INCLUDES}
+  "/usr/local/include/kmymoney"
+  "/usr/include/kmymoney")
 
 # patch the version with the version defined in the build system
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/kmm_sebimport.desktop ${CMAKE_CURRENT_BINARY_DIR}/kmm_sebimport.desktop)
