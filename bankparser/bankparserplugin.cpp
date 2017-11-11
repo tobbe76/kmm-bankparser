@@ -1,5 +1,5 @@
 /***************************************************************************
-                          sebimporterplugin.cpp
+                          bankparserplugin.cpp
                              -------------------
     begin                : Sat Jan 01 2016
     copyright            : (C) 2016 by Thorbjorn Larsson
@@ -15,7 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "sebimporterplugin.h"
+#include "bankparserplugin.h"
 
 // ----------------------------------------------------------------------------
 // QT Includes
@@ -49,12 +49,12 @@
 #include "datesdialog.h"
 #include "dateinterval.h"
 
-K_PLUGIN_FACTORY(SebImportFactory, registerPlugin<SebImporterPlugin>();)
-K_EXPORT_PLUGIN(SebImportFactory("kmm_sebimport"))
+K_PLUGIN_FACTORY(BankparserFactory, registerPlugin<BankparserPlugin>();)
+K_EXPORT_PLUGIN(BankparserFactory("kmm_bankparser"))
 
 using KWallet::Wallet;
 
-class SebImporterPlugin::Private
+class BankparserPlugin::Private
 {
 public:
   QList<MyMoneyStatement> m_statementlist;
@@ -62,59 +62,59 @@ public:
   DateInterval dateInterval;
 };
 
-SebImporterPlugin::SebImporterPlugin(QObject *parent, const QVariantList&) :
-    KMyMoneyPlugin::Plugin(parent, "KMyMoney SEB"),
+BankparserPlugin::BankparserPlugin(QObject *parent, const QVariantList&) :
+    KMyMoneyPlugin::Plugin(parent, "KMyMoney BANKPARSER"),
     /*
      * the string in the line above must be the same as
      * X-KDE-PluginInfo-Name and the provider name assigned in
-     * SebImporterPlugin::onlineBankingSettings()
+     * BankparserPlugin::onlineBankingSettings()
      */
     KMyMoneyPlugin::OnlinePlugin(),
     d(new Private)
 {
-  setComponentData(SebImportFactory::componentData());
-  setXMLFile("kmm_sebimport.rc");
+  setComponentData(BankparserFactory::componentData());
+  setXMLFile("kmm_bankparser.rc");
 
   d->useForAll = false;
   // For ease announce that we have been loaded.
-  qDebug("KMyMoney sebimport plugin loaded");
+  qDebug("KMyMoney bankparser plugin loaded");
 }
 
-SebImporterPlugin::~SebImporterPlugin()
+BankparserPlugin::~BankparserPlugin()
 {
   qDebug("Destructor called ");
   delete d;
 }
 
-const MyMoneyAccount& SebImporterPlugin::account(const QString& key, const QString& value) const
+const MyMoneyAccount& BankparserPlugin::account(const QString& key, const QString& value) const
 {
   qDebug() << "account " << key << " "  << value;
   return statementInterface()->account(key, value);
 }
 
-void SebImporterPlugin::protocols(QStringList& protocolList) const
+void BankparserPlugin::protocols(QStringList& protocolList) const
 {
   protocolList.clear();
   protocolList << "WWW";
 }
 
-QWidget* SebImporterPlugin::accountConfigTab(const MyMoneyAccount& acc, QString& name)
+QWidget* BankparserPlugin::accountConfigTab(const MyMoneyAccount& acc, QString& name)
 {
   Q_UNUSED(acc);
   name = i18n("Online settings");
   return NULL;
 }
 
-MyMoneyKeyValueContainer SebImporterPlugin::onlineBankingSettings(const MyMoneyKeyValueContainer& current)
+MyMoneyKeyValueContainer BankparserPlugin::onlineBankingSettings(const MyMoneyKeyValueContainer& current)
 {
   qDebug() << "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM onlineBankingSettings";
   MyMoneyKeyValueContainer kvp(current);
   // keep the provider name in sync with the one found in kmm_sebimport.desktop
-  kvp["provider"] = "KMyMoney SEB";
+  kvp["provider"] = "KMyMoney BANKPARSER";
   return kvp;
 }
 
-bool SebImporterPlugin::mapAccount(const MyMoneyAccount& acc, MyMoneyKeyValueContainer& settings)
+bool BankparserPlugin::mapAccount(const MyMoneyAccount& acc, MyMoneyKeyValueContainer& settings)
 {
   Q_UNUSED(acc);
 
@@ -132,11 +132,11 @@ bool SebImporterPlugin::mapAccount(const MyMoneyAccount& acc, MyMoneyKeyValueCon
   return true;
 }
 
-bool SebImporterPlugin::updateAccount(const MyMoneyAccount& acc, bool moreAccounts)
+bool BankparserPlugin::updateAccount(const MyMoneyAccount& acc, bool moreAccounts)
 {
   Q_UNUSED(moreAccounts);
 
-  qDebug("SebImporterPlugin::updateAccount");
+  qDebug("BankparserPlugin::updateAccount");
   
   KmmAccountInfo account(acc.number(), acc.name(), acc.institutionId(), acc.id(), acc.lastReconciliationDate(),
                          acc.openingDate(),
@@ -173,7 +173,7 @@ bool SebImporterPlugin::updateAccount(const MyMoneyAccount& acc, bool moreAccoun
   return true;
 }
 
-void SebImporterPlugin::accountFinished(MyMoneyStatement* s)
+void BankparserPlugin::accountFinished(MyMoneyStatement* s)
 {
   statementInterface()->import(*s);
   qDebug() << "accountFinished " << s->m_accountId;

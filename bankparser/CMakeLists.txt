@@ -37,7 +37,7 @@ include_directories( ${KDE4_INCLUDES}
   "/usr/include/kmymoney")
 
 # patch the version with the version defined in the build system
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/kmm_sebimport.desktop ${CMAKE_CURRENT_BINARY_DIR}/kmm_sebimport.desktop)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/kmm_bankparser.desktop ${CMAKE_CURRENT_BINARY_DIR}/kmm_bankparser.desktop)
 add_subdirectory( dialogs )
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../mymoney
   ${CMAKE_CURRENT_SOURCE_DIR}/dialogs
@@ -45,8 +45,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../mymoney
 
 ########### next target ###############
 
-set(kmm_sebimport_PART_SRCS
-  sebimporterplugin.cpp
+set(kmm_bankparser_PART_SRCS
+  bankparserplugin.cpp
   swedbankparser.cpp
   sebparser.cpp
   debugwebpage.cpp
@@ -56,14 +56,14 @@ set(kmm_sebimport_PART_SRCS
   bankparser.cpp
   parserfactory.cpp)
 
-set(kmm_sebimport_PART_UI importoption.ui)
+set(kmm_bankparser_PART_UI importoption.ui)
 
-kde4_add_ui_files(kmm_sebimport_PART_SRCS ${kmm_sebimport_PART_UI})
+kde4_add_ui_files(kmm_bankparser_PART_SRCS ${kmm_bankparser_PART_UI})
 
-kde4_add_plugin(kmm_sebimport ${kmm_sebimport_PART_SRCS})
+kde4_add_plugin(kmm_bankparser ${kmm_bankparser_PART_SRCS})
 
-target_link_libraries(kmm_sebimport
-                      kmm_sebimport_dialogs
+target_link_libraries(kmm_bankparser
+                      kmm_bankparser_dialogs
                       kmm_mymoney
                       kmm_widgets
                       kmm_plugin
@@ -74,13 +74,13 @@ target_link_libraries(kmm_sebimport
 
 ########### install files ###############
 
-install(FILES kmm_sebimport.rc
-        DESTINATION  ${DATA_INSTALL_DIR}/kmm_sebimport)
+install(FILES kmm_bankparser.rc
+        DESTINATION  ${DATA_INSTALL_DIR}/kmm_bankparser)
 
-install(TARGETS kmm_sebimport
+install(TARGETS kmm_bankparser
         DESTINATION ${PLUGIN_INSTALL_DIR})
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/kmm_sebimport.desktop
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/kmm_bankparser.desktop
         DESTINATION ${SERVICES_INSTALL_DIR})
 
       

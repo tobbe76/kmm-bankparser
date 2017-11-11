@@ -175,7 +175,7 @@ void NorwegianParser::attachObject()
 
     accountPage->mainFrame()->addToJavaScriptWindowObject("MainWindow", this);
 
-    const QString ajaxStopEvent = "$( document ).ajaxStop(function() { %1 });";
+    const QString ajaxStopEvent = "$( document ).ajaxStop(function() { %1 }); null;";
     accountPage->mainFrame()->evaluateJavaScript(ajaxStopEvent.arg("MainWindow.ajaxStopEvent();"));
 
     qDebug() << "NorwegianParser::attachObject done";
@@ -188,9 +188,10 @@ void NorwegianParser::selectYear(const QString &wantedYear)
     const QString changeEvent = R"(
             var event = document.createEvent('Event');
             event.initEvent('change', true, true);
-            document.getElementsByName("YearList")[0].dispatchEvent(event);)";
+            document.getElementsByName("YearList")[0].dispatchEvent(event);
+            null;)";
 
-   const QString selectYear = R"(document.getElementsByName("YearList")[0].value = "%1")";
+   const QString selectYear = R"(document.getElementsByName("YearList")[0].value = "%1"; null;)";
 
     accountPage->mainFrame()->evaluateJavaScript(selectYear.arg(wantedYear));
     accountPage->mainFrame()->evaluateJavaScript(changeEvent);

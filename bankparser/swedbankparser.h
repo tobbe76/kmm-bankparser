@@ -50,16 +50,19 @@ public slots:
 private slots:
     void loadFinished(bool arg1);
     void timeout();
+    void login_loadFinished(bool ok);
+    void parseAccountTables(bool ok);
+    void urlChanged(const QUrl & url);
 
 private:
     void writeQifStatement(QDate date, QString payee, QString sum, QString memo, quint16 verif);
-    void parseAccountTables(QWebElement accountTables);
     bool parseStatements(QWebElement s);
     void accountFinished();
-    
+
     QTimer *timer;
     QWebPage* accountPage;
     QMap<QString, QUrl> accountList;
+    QMap<QString, BankAccountInfo> accountMap;
     MyMoneyStatement* s;
     DateInterval dateInterval;
     bool loggedInOk;

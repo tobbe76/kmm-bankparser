@@ -37,8 +37,11 @@ bool SwedbankParser::login(QWebView* view)
   accountPage = new QWebPage(this);
   
   view->setPage(accountPage);
+
+  connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), Qt::QueuedConnection);
+  connect(accountPage->mainFrame(), SIGNAL(urlChanged(const QUrl&)), this, SLOT(urlChanged(const QUrl&)), Qt::QueuedConnection);
   view->load(QUrl("https://demo.swedbank.se/app/privat/login"));
-  
+
   loggedInOk = true;
   qDebug() << "SwedbankParser::login end";
   
@@ -93,22 +96,6 @@ void SwedbankParser::writeQifStatement(QDate date, QString payee, QString sum, Q
   s->m_listTransactions.append(t);
 }
 
-void SwedbankParser::parseAccountTables(QWebElement accountTables)
-{
-    QUrl baseUrl = accountPage->mainFrame()->baseUrl();
-
-    QWebElementCollection account = accountTables.findAll("tbody tr");
-    foreach (QWebElement e, account) {
-        QWebElementCollection em = e.findAll("td");
-        QWebElement link = em[0].findFirst("a");
-        QUrl relativeUrl(link.attribute("href"));
-        QUrl absoluteUrl = baseUrl.resolved(relativeUrl);
-	QString number = em[1].toPlainText().trimmed().simplified().replace(" ", "");
-
-	accountList[number] = absoluteUrl;
-    }
-}
-
 bool SwedbankParser::parseStatements(QWebElement s)
 {
     Q_UNUSED(s);
@@ -152,4 +139,66 @@ void SwedbankParser::getAccountList(QList<BankAccountInfo> &accList)
 {
     Q_UNUSED(accList);
     loginIfNeeded();
+}
+
+void SwedbankParser::parseAccountTables(bool ok)
+{
+    qDebug() << "SwedbankParser::parseAccountTables begin";
+
+    const QString accountListParser = R"(
+            var accLists = document.getElementsByClassName("_list _list--striped-reverse");
+            for(var i = 0; i < accLists.length; i++) {
+                var infoList = accList[i].getElementsByTagName("li");
+                for(var j = 0; j < infoLists.length; j++) {
+                    console.log(infoLists[j].innerText);
+                }
+            }
+            var accArr = [];
+            accArr;)";
+
+    QVariant res = accountPage->mainFrame()->evaluateJavaScript(accountListParser);
+
+    QList<QVariant> list = res.toList();
+    for(int i = 0; i < list.size(); i++)
+    {
+        QMap<QString, QVariant> map = list[i].toMap();
+        BankAccountInfo account;
+        account.setUrl(QUrl(map["Link"].toString()));
+        account.setName(map["Name"].toString());
+        account.setNumber(map["Number"].toString());
+        account.setKey(map["Number"].toString().replace(" ", ""));
+        accountMap[account.getKey()] = account;
+    }
+
+    qDebug() << "SwedbankParser::parseAccountTables end";
+}
+
+void SwedbankParser::login_loadFinished(bool ok)
+{
+    qDebug() << "SwedbankParser::login_loadFinished begin" << accountPage->mainFrame()->url() << " " << ok;
+
+    if(QUrl("https://demo.swedbank.se/app/privat/start-page") == accountPage->mainFrame()->url())
+    {
+        qDebug() << "SwedbankParser::isLoginFinished Done";
+        connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), Qt::QueuedConnection);
+        disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)));
+        loggedInOk = true;
+        emit loginFinished(true);
+        accountPage->mainFrame()->load(QUrl("https://demo.swedbank.se/app/privat/konton-och-kort"));
+    }
+    qDebug() << "SwedbankParser::login_loadFinished end";
+}
+
+void SwedbankParser::urlChanged(const QUrl & url) {
+    qDebug() << "SwedbankParser::urlChanged " << url;
+    if(QUrl("https://demo.swedbank.se/app/privat/start-page") == accountPage->mainFrame()->url())
+    {
+        qDebug() << "SwedbankParser::urlChanged Done";
+        connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), Qt::QueuedConnection);
+        disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)));
+        loggedInOk = true;
+        emit loginFinished(true);
+        accountPage->mainFrame()->load(QUrl("https://demo.swedbank.se/app/privat/konton-och-kort"));
+    }
+    qDebug() << "SwedbankParser::login_loadFinished end";
 }

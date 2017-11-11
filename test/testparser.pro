@@ -7,6 +7,7 @@
 QT       += core gui
 QT       += webkit
 QT       += webkitwidgets
+QT       += widgets
 
 TARGET = testParser
 TEMPLATE = app

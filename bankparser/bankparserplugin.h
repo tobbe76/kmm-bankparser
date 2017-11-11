@@ -1,5 +1,5 @@
 /***************************************************************************
-                          sebimporterplugin.h
+                          bankparserplugin.h
                              -------------------
     begin                : Sat Jan 01 2016
     copyright            : (C) 2016 by Thorbjorn Larsson
@@ -15,8 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef SEBIMPORTERPLUGIN_H
-#define SEBIMPORTERPLUGIN_H
+#ifndef BANKPARSERPLUGIN_H
+#define BANKPARSERPLUGIN_H
 
 // ----------------------------------------------------------------------------
 // KDE Includes
@@ -36,13 +36,13 @@
 /**
 @author Thorbjorn Larsson
 */
-class SebImporterPlugin : public KMyMoneyPlugin::Plugin, public KMyMoneyPlugin::OnlinePlugin
+class BankparserPlugin : public KMyMoneyPlugin::Plugin, public KMyMoneyPlugin::OnlinePlugin
 {
   Q_OBJECT
 public:
-  explicit SebImporterPlugin(QObject *parent, const QVariantList&);
+  explicit BankparserPlugin(QObject *parent, const QVariantList&);
 
-  ~SebImporterPlugin();
+  ~BankparserPlugin();
 
   /**
     * Returns a pointer to a widget that will be added as tab to

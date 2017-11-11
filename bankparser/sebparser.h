@@ -42,23 +42,34 @@ public:
  signals:
     void accountFinishedSignal(MyMoneyStatement* s);
     void loginFinished(bool result);
+    void newPageLoadedSignal(void);
+    void statementExpandedSignal(void);
     
 public slots:
-    void endRequest();
+    void newPageEndRequest();
+    void expandStatementEndRequest();
   
 private slots:
     void login_loadFinished(bool ok);
     void loadFinished(bool ok);
+    void newPageLoaded(void);
+    void statementExpanded(void);
 
 private:
     void parseAccountTables();
-    bool parseStatements(QWebFrame *view);
-    
+    void parseStatements(QWebFrame *view);
+    void expandStatement(int rowNr);
+    void findStatementsToExpand(QWebFrame *view);
+
     QWebPage* accountPage;
     QMap<QString, BankAccountInfo> accountMap;
     MyMoneyStatement* s;
     DateInterval dateInterval;
+    QList<int> rowsToExpand;
     bool loggedInOk;
+    int nrOfExp;
+    int recNrOfExp;
+
 };
 
 #endif

@@ -78,6 +78,8 @@ void MainWindow::testParser1(QList<KmmAccountInfo>& accounts)
             useForAll = dates.getUseForAll();
         }
 
+        qDebug() << "DATES " << dateInterval;
+
         BankParser* parser = ParserFactory::getParser(accounts[i].getMappedBank());
 
         connect(parser, SIGNAL(accountFinishedSignal(MyMoneyStatement*)),
@@ -111,7 +113,7 @@ void MainWindow::on_testStartButton_clicked()
     }
     else if(name == "SEB")
     {
-        accounts.append(KmmAccountInfo("Hus", "5048 00123 45", "Seb", "ID3", QDate::currentDate(), QDate::currentDate(), name, "50480037566"));
+        accounts.append(KmmAccountInfo("Hus", "5048 00375 66", "Seb", "ID3", QDate::currentDate(), QDate::currentDate(), name, "50480037566"));
     }
     else if(name == "NORWEGIAN")
     {
