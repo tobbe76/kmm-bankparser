@@ -66,3 +66,38 @@ void DatesDialog::on_buttonBox_rejected()
 {
     reject();
 }
+
+void DatesDialog::setDatesOk() {
+    QPalette palette;
+    palette.setColor(QPalette::Text,Qt::black);
+    ui->toDate->setPalette(palette);
+    ui->fromDate->setPalette(palette);
+    ui->fromDate->setToolTip("");
+    ui->toDate->setToolTip("");
+}
+
+void DatesDialog::on_toDate_userDateChanged(const QDate &date)
+{
+    if(ui->fromDate->date() <= ui->toDate->date()) {
+        setDatesOk();
+    }
+    else {
+        QPalette palette;
+        palette.setColor(QPalette::Text,Qt::red);
+        ui->toDate->setPalette(palette);
+        ui->toDate->setToolTip("Should be later than from date");
+    }
+}
+
+void DatesDialog::on_fromDate_userDateChanged(const QDate &date)
+{
+    if(ui->fromDate->date() <= ui->toDate->date()) {
+        setDatesOk();
+   }
+    else {
+        QPalette palette;
+        palette.setColor(QPalette::Text,Qt::red);
+        ui->fromDate->setPalette(palette);
+        ui->fromDate->setToolTip("Should be earlier than to date");
+    }
+}

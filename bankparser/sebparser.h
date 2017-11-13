@@ -67,9 +67,8 @@ private:
     DateInterval dateInterval;
     QList<int> rowsToExpand;
     bool loggedInOk;
-    int nrOfExp;
-    int recNrOfExp;
-
+    QString closingBalance;
+    bool isFirst;
 };
 
 #endif

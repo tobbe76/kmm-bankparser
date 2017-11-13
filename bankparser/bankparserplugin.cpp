@@ -170,6 +170,10 @@ bool BankparserPlugin::updateAccount(const MyMoneyAccount& acc, bool moreAccount
 
   bankparser->processAccount(account, d->dateInterval);
 
+  if(!moreAccounts) {
+    d->useForAll = false;
+  }
+  
   return true;
 }
 

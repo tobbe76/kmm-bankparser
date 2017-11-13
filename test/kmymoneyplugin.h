@@ -77,7 +77,7 @@ public:
   QString m_strCurrency;
   QDate m_dateBegin;
   QDate m_dateEnd;
- // MyMoneyMoney m_closingBalance;
+  MyMoneyMoney m_closingBalance;
   EType m_eType;
 
   QList<Transaction> m_listTransactions;

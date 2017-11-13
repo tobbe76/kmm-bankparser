@@ -47,7 +47,12 @@ private slots:
 
     void on_buttonBox_rejected();
 
+    void on_toDate_userDateChanged(const QDate &date);
+
+    void on_fromDate_userDateChanged(const QDate &date);
+
 private:
+    void setDatesOk();
     Ui::DatesDialog *ui;
     QDate lastReconciled;
 };

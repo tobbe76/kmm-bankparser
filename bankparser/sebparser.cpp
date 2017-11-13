@@ -57,6 +57,8 @@ void SebParser::processAccount(const AccountJob &accountJob)
     s = new MyMoneyStatement();
     this->dateInterval = accountJob.getDateInterval();
 
+    isFirst = true;
+
     if(accountMap.contains(accountJob.getAccountInfo().getMappedAccount())) {
         s->m_accountId = accountJob.getAccountInfo().getId();
         qDebug() << "Load url " << accountMap.value(accountJob.getAccountInfo().getMappedAccount()).getUrl();
@@ -104,8 +106,6 @@ void SebParser::parseAccountTables()
 
 void SebParser::expandStatement(int rowNr)
 {
-    qDebug() << "expandStatement START";
-
     accountPage->mainFrame()->addToJavaScriptWindowObject("SebParser", this);
 
     QString sebExpandTransaction = R"(
@@ -120,13 +120,10 @@ void SebParser::expandStatement(int rowNr)
 
     QVariant res = accountPage->mainFrame()->evaluateJavaScript(sebExpandTransaction.arg(rowNr));
 
-    qDebug() << "expandStatement DONE";
 }
 
 void SebParser::findStatementsToExpand(QWebFrame* view)
 {
-    qDebug() << "findStatementsToExpand START";
-
     QString sebExpandTransaction = R"(
             var accDiv = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_DataTable");
             var tables = accDiv.getElementsByTagName("table");
@@ -154,8 +151,6 @@ void SebParser::findStatementsToExpand(QWebFrame* view)
     else {
         expandStatement(rowsToExpand.takeFirst());
     }
-
-    qDebug() << "findStatementsToExpand DONE";
 }
 
 
@@ -173,6 +168,7 @@ void SebParser::parseStatements(QWebFrame* view)
                 var date = trans.cells[1].innerText;
                 var name = trans.cells[2].innerText.split('/')[0];
                 var sum  = trans.cells[4].innerText;
+                var balance = trans.cells[5].innerText;
                 if(sum.length == 0) {
                     sum = trans.cells[3].innerText;
                 }
@@ -181,7 +177,7 @@ void SebParser::parseStatements(QWebFrame* view)
                 for(var j = 0; j < valList.length; j = j +1) {
                     extra += valList[j].innerText;
                 }
-                transArr.push({Name:name, Date:date, Sum:sum, Extra:extra});
+                transArr.push({Name:name, Date:date, Sum:sum, Extra:extra, Balance:balance});
             }
             transArr;)";
 
@@ -197,12 +193,20 @@ void SebParser::parseStatements(QWebFrame* view)
 
         if(dateInterval.isOlderThanInterval(date))
         {
-            qDebug() << "Finished date " << date << "wanted interval " << dateInterval;
+            if(!s->m_listTransactions.isEmpty()) {
+                s->m_dateBegin = s->m_listTransactions.last().m_datePosted;
+                s->m_dateEnd = s->m_listTransactions.first().m_datePosted;
+                s->m_closingBalance = MyMoneyMoney(closingBalance);
+            }
             accountFinished(s);
             return;
         }
 
         if(dateInterval.isWithinInterval(date)) {
+            if(isFirst) {
+                closingBalance = map["Balance"].toString();
+                isFirst = false;
+            }
             QString var = map["Name"].toString() + map["Date"].toString() + map["Sum"].toString() + map["Extra"].toString();
             QByteArray barr = var.toUtf8();
             quint16 crc1 = qChecksum(barr.data(), barr.length());
@@ -210,7 +214,6 @@ void SebParser::parseStatements(QWebFrame* view)
         }
     }
 
-    qDebug() << "MORE IS NEEDED";
     accountPage->mainFrame()->addToJavaScriptWindowObject("SebParser", this);
 
     const QString SebNextPage = R"(
@@ -229,13 +232,14 @@ void SebParser::parseStatements(QWebFrame* view)
             isMore;)";
 
     QVariant res2 = accountPage->mainFrame()->evaluateJavaScript(SebNextPage);
-    qDebug() << "RES2 " << res2.typeName() << " val " <<  (int)res2.toDouble() << " " << res2.toDouble();
     if((int)res2.toDouble() == 0) {
-        qDebug() << "Finished no more data ";
+        if(!s->m_listTransactions.isEmpty()) {
+            s->m_dateBegin = s->m_listTransactions.last().m_datePosted;
+            s->m_dateEnd = s->m_listTransactions.first().m_datePosted;
+            s->m_closingBalance = MyMoneyMoney(closingBalance);
+        }
         accountFinished(s);
     }
-
-    qDebug() << "parseStatements DONE";
 }
 
 void SebParser::expandStatementEndRequest()
@@ -271,8 +275,6 @@ void SebParser::loadFinished(bool ok)
 {
     if(ok)
     {
-        qDebug() << "SebParser::loadFinished begin";
-
         QWebElement statements = accountPage->mainFrame()->findFirstElement("div[id=IKPMaster_MainPlaceHolder_ucAccountEvents_DataTable]");
         if(!statements.isNull())
         {
@@ -300,7 +302,6 @@ void SebParser::loadFinished(bool ok)
     {
         qDebug() << "Failed to load page";
     }
-    qDebug() << "SebParser::loadFinished end";
 }
 
 void SebParser::getAccountList(QList<BankAccountInfo> &accList)

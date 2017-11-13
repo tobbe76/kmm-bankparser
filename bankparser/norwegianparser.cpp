@@ -185,16 +185,13 @@ void NorwegianParser::selectYear(const QString &wantedYear)
 {
     qDebug() << "NorwegianParser::selectYear begin " << wantedYear;
 
-    const QString changeEvent = R"(
-            var event = document.createEvent('Event');
-            event.initEvent('change', true, true);
-            document.getElementsByName("YearList")[0].dispatchEvent(event);
-            null;)";
-
-   const QString selectYear = R"(document.getElementsByName("YearList")[0].value = "%1"; null;)";
+   const QString selectYear = R"(document.getElementsByName("YearList")[0].value = "%1";
+                                 var event = document.createEvent('Event');
+                                 event.initEvent('change', true, true);
+                                 document.getElementsByName("YearList")[0].dispatchEvent(event);
+                                 null;)";
 
     accountPage->mainFrame()->evaluateJavaScript(selectYear.arg(wantedYear));
-    accountPage->mainFrame()->evaluateJavaScript(changeEvent);
 
     qDebug() << "NorwegianParser::selectYear end";
 }

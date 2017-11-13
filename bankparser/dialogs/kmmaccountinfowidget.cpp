@@ -23,7 +23,7 @@
 int KmmAccountTableModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 12;
+    return 10;
 }
 
 int KmmAccountTableModel::columnCount(const QModelIndex &parent) const
@@ -145,6 +145,7 @@ void KmmAccountInfoWidget::setAccountInfo(const KmmAccountInfo& info)
     tableModel->setAccountList(info);
     ui->tableView->resizeColumnsToContents();
     ui->tableView->resizeRowsToContents();
+    ui->tableView->setMinimumSize(ui->tableView->horizontalHeader()->length() + 10, ui->tableView->verticalHeader()->length());
 }
 
 void KmmAccountInfoWidget::setMappedBank(const QString& bank)
