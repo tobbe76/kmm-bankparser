@@ -25,35 +25,26 @@
 
 SebParser::SebParser()
 {
-    loggedInOk = false;
     accountPage = new DebugWebPage(this);
-}
-
-bool SebParser::login(QWebView* view)
-{
-    qDebug() << "SebParser::login start";
-  
-    view->setPage(accountPage);
-
-    connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), Qt::QueuedConnection);
-    view->load(QUrl("https://privat.ib.seb.se/wow/1000/1000/wow1020.aspx"));
-
-    qDebug() << "SebParser::login end";
-
+    ld = new BrowserLoginDialog();
     connect(this, SIGNAL(statementExpandedSignal(void)), this, SLOT(statementExpanded(void)), Qt::QueuedConnection);
     connect(this, SIGNAL(newPageLoadedSignal(void)), this, SLOT(newPageLoaded(void)), Qt::QueuedConnection);
-
-    return true;
 }
 
-bool SebParser::isLoggedIn()
+void SebParser::loginIfNeeded(void)
 {
-    return loggedInOk;
+    qDebug() << "SebParser::loginIfNeeded start";
+
+    connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+    disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)));
+
+    accountPage->mainFrame()->load(QUrl("https://privat.ib.seb.se/wow/1000/1100/wown1100.aspx"));
+
+    qDebug() << "SebParser::loginIfNeeded end";
 }
 
 void SebParser::processAccount(const AccountJob &accountJob)
 {
-    loginIfNeeded();
     s = new MyMoneyStatement();
     this->dateInterval = accountJob.getDateInterval();
 
@@ -112,7 +103,7 @@ void SebParser::expandStatement(int rowNr)
             var accDiv = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_DataTable");
             var tables = accDiv.getElementsByTagName("table");
             var rows = tables[0].tBodies[0].rows;
-            Sys.WebForms.PageRequestManager.getInstance().add_endRequest( SebParser.expandStatementEndRequest );
+            Sys.WebForms.PageRequestManager.getInstance().add_endRequest( SebParser.statementExpandedSignal );
             var event = document.createEvent('Event');
             event.initEvent('click', true, true);
             rows[%1].dispatchEvent(event);
@@ -163,7 +154,9 @@ void SebParser::parseStatements(QWebFrame* view)
             var tables = accDiv.getElementsByTagName("table");
             var transArr = [];
             var rows = tables[0].tBodies[0].rows;
-            for(var i = 2; i < rows.length; i = i +2) {
+            for(var i = 0; i < rows.length; i = i +2) {
+              var trans = rows[i];
+              if(trans.cells.length > 4) {
                 var trans = rows[i];
                 var date = trans.cells[1].innerText;
                 var name = trans.cells[2].innerText.split('/')[0];
@@ -178,6 +171,7 @@ void SebParser::parseStatements(QWebFrame* view)
                     extra += valList[j].innerText;
                 }
                 transArr.push({Name:name, Date:date, Sum:sum, Extra:extra, Balance:balance});
+              }
             }
             transArr;)";
 
@@ -220,7 +214,7 @@ void SebParser::parseStatements(QWebFrame* view)
             var isMore;
             var nextButton = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_BTN_NEXT");
             if(nextButton) {
-              Sys.WebForms.PageRequestManager.getInstance().add_endRequest( SebParser.newPageEndRequest );
+              Sys.WebForms.PageRequestManager.getInstance().add_endRequest( SebParser.newPageLoadedSignal );
               var event = document.createEvent('Event');
               event.initEvent('click', true, true);
               document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_BTN_NEXT").dispatchEvent(event);
@@ -242,15 +236,10 @@ void SebParser::parseStatements(QWebFrame* view)
     }
 }
 
-void SebParser::expandStatementEndRequest()
-{
-    emit statementExpandedSignal();
-}
-
 void SebParser::statementExpanded(void)
 {
     accountPage->mainFrame()->evaluateJavaScript
-            ("Sys.WebForms.PageRequestManager.getInstance().remove_endRequest( SebParser.expandStatementEndRequest ); null;");
+            ("Sys.WebForms.PageRequestManager.getInstance().remove_endRequest( SebParser.statementExpandedSignal ); null;");
     if(rowsToExpand.isEmpty()) {
         parseStatements(accountPage->mainFrame());
     }
@@ -262,13 +251,8 @@ void SebParser::statementExpanded(void)
 void SebParser::newPageLoaded()
 {
     accountPage->mainFrame()->evaluateJavaScript
-                            ("Sys.WebForms.PageRequestManager.getInstance().remove_endRequest( SebParser.newPageEndRequest ); null;");
+                            ("Sys.WebForms.PageRequestManager.getInstance().remove_endRequest( SebParser.newPageLoadedSignal ); null;");
     findStatementsToExpand(accountPage->mainFrame());
-}
-
-void SebParser::newPageEndRequest()
-{
-    emit newPageLoadedSignal();
 }
 
 void SebParser::loadFinished(bool ok)
@@ -281,7 +265,7 @@ void SebParser::loadFinished(bool ok)
             accountPage->mainFrame()->addToJavaScriptWindowObject("SebParser", this);
 
             QString sebFilterDatesParser = R"(
-                    Sys.WebForms.PageRequestManager.getInstance().add_endRequest( SebParser.newPageEndRequest );
+                    Sys.WebForms.PageRequestManager.getInstance().add_endRequest( SebParser.newPageLoadedSignal );
                     var updSearch  = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_UpdSearch");
                     var butts = updSearch.getElementsByClassName("m-button")
                     var newestDate = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_T1");
@@ -306,7 +290,6 @@ void SebParser::loadFinished(bool ok)
 
 void SebParser::getAccountList(QList<BankAccountInfo> &accList)
 {
-    loginIfNeeded();
     accList.append(accountMap.values());
 }
 
@@ -315,16 +298,20 @@ void SebParser::login_loadFinished(bool ok)
     if(ok)
     {
         qDebug() << "SebParser::login_loadFinished start " << accountPage->mainFrame()->url();
-  
         QWebElement accountTables = accountPage->mainFrame()->findFirstElement("div[id=IKPMaster_MainPlaceHolder_ucAccountTable_pnlAccounts]");
         if(!accountTables.isNull()) {
             qDebug() << "SebParser::login_loadFinished Done";
 
             parseAccountTables();
-            connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)), Qt::QueuedConnection);
+            connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
             disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)));
-            loggedInOk = true;
             emit loginFinished(true);
+            ld->closeLoginDialog();
+        }
+        else {
+            if(!ld->isDialogOpen()) {
+                ld->openLoginDialog(accountPage, QUrl("https://privat.ib.seb.se/wow/1000/1000/wow1020.aspx"));
+            }
         }
 
         qDebug() << "SebParser::login_loadFinished end";

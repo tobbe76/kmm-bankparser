@@ -34,21 +34,14 @@ class SebParser : public BankParser
 public:
     SebParser();
     ~SebParser();
-    bool login(QWebView* view);
-    bool isLoggedIn();
     void processAccount(const AccountJob& accountJob);
     void getAccountList(QList<BankAccountInfo> &accList);
+    void loginIfNeeded(void);
 
  signals:
-    void accountFinishedSignal(MyMoneyStatement* s);
-    void loginFinished(bool result);
     void newPageLoadedSignal(void);
     void statementExpandedSignal(void);
-    
-public slots:
-    void newPageEndRequest();
-    void expandStatementEndRequest();
-  
+      
 private slots:
     void login_loadFinished(bool ok);
     void loadFinished(bool ok);
@@ -66,7 +59,6 @@ private:
     MyMoneyStatement* s;
     DateInterval dateInterval;
     QList<int> rowsToExpand;
-    bool loggedInOk;
     QString closingBalance;
     bool isFirst;
 };

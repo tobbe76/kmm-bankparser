@@ -26,10 +26,10 @@
 #include <QTimer>
 #include <QTextStream>
 #include "kmymoneyplugin.h"
-#include "logininterface.h"
 #include "bankaccountinfo.h"
 #include "kmmaccountinfo.h"
 #include "dateinterval.h"
+#include "logindialog.h"
 
 class AccountJob
 {
@@ -56,31 +56,38 @@ private:
 };
 
 
-class BankParser : public LoginInterface
+class BankParser : public QObject
 {
+    Q_OBJECT
 
 public:
     BankParser();
     virtual ~BankParser() {};
 
-    /* Return true if already logged in */
-    virtual bool isLoggedIn() = 0;
-
     /* Parse the statements for all accounts */
     void processAccount(KmmAccountInfo& accountInfo, const DateInterval& dateInterval);
-
-    virtual void getAccountList(QList<BankAccountInfo> &accList) = 0;
+    void getAccountList();
 
 signals:
-    virtual void accountFinishedSignal(MyMoneyStatement* s) = 0;
+    void accountListFinishedSignal(QList<BankAccountInfo> accList);
+    void accountFinishedSignal(MyMoneyStatement* s);
+    void loginFinished(bool result);
+
+public slots:
+    void loginFinishedSlot(bool result);
 
 protected:
-    void loginIfNeeded();
     void accountFinished(MyMoneyStatement* s);
     virtual void processAccount(const AccountJob& accountJob) = 0;
+    virtual void getAccountList(QList<BankAccountInfo> &accList) = 0;
+    virtual void loginIfNeeded() = 0;
     void addStatement(MyMoneyStatement *s, const QDate& date, const QString& payee, const QString& sum, const QString& memo, const quint16& verif);
+    BrowserLoginDialog *ld;
+
+private:
     bool isParsing;
     PendingAccounJobs pendingAccounJobs;
+    int waitingOp;
 };
 
 #endif

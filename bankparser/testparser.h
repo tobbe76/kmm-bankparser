@@ -1,5 +1,5 @@
 /***************************************************************************
-                          logininterface.h
+                          sebparser.h
                              -------------------
     begin                : Sat Jan 01 2016
     copyright            : (C) 2016 by Thorbjorn Larsson
@@ -15,24 +15,49 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef LOGININTERFACE_H
-#define LOGININTERFACE_H
+#ifndef TESTPARSER_H
+#define TESTPARSER_H
 
 #include <QUrl>
-#include <QWebView>
+#include <QMap>
+#include <QDate>
+#include <QWebElement>
+#include <QFile>
+#include <QTimer>
+#include <QTextStream>
+#include "bankparser.h"
 
-class LoginInterface : public QObject
+class TestParser : public BankParser
 {
+    Q_OBJECT
 
- public:
-  LoginInterface() {};
-  virtual ~LoginInterface() {};
-  
-  /* Called from the login dialog, should create a QWebPage and add it to the view */
-  virtual bool login(QWebView* view) = 0;
+public:
+    TestParser();
+    ~TestParser();
+    void processAccount(const AccountJob& accountJob);
+    void getAccountList(QList<BankAccountInfo> &accList);
+    void loginIfNeeded(void);
 
-signals:
-  virtual void loginFinished(bool result) = 0;
+ signals:
+    void newPageLoadedSignal(void);
+    void statementExpandedSignal(void);
+    void jsLoginCallbackSignal(void);
+
+public slots:
+    void jsLoginCallbackSlot();
+
+private slots:
+    void login_loadFinished(bool ok);
+    void processAccountTimout();
+
+private:
+
+    QWebPage* accountPage;
+    QMap<QString, BankAccountInfo> accountMap;
+    MyMoneyStatement* s;
+    QList<int> rowsToExpand;
+    bool loggedInOk;
+    bool isFirst;
 };
 
 #endif

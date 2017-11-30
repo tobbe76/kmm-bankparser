@@ -28,13 +28,11 @@ private slots:
 
     void on_mapAccount_clicked();
 
+    void on_clearLog_clicked();
+
 private:
     Ui::MainWindow *ui;
-    void clickElement(QWebElement element);
-    QString readFile(QString file);
     void testParser1(QList<KmmAccountInfo> &accounts);
-    bool first;
-    int nr;
 };
 
 #endif // MAINWINDOW_H

@@ -16,7 +16,6 @@
  ***************************************************************************/
 
 #include "norwegianparser.h"
-//#include "ui_mainwindow.h"
 #include <QWebElement>
 #include <QWebFrame>
 #include <QWebView>
@@ -26,49 +25,44 @@
 
 NorwegianParser::NorwegianParser()
 {
-    yearSelected = false;
-    year = 0;
-    loggedInOk = false;
     accountPage = new DebugWebPage(this);
+    ld = new BrowserLoginDialog();
+    connect(accountPage->mainFrame(), SIGNAL(javaScriptWindowObjectCleared()), this, SLOT(attachObject()), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+    connect(this, SIGNAL(ajaxStopEventSignal(void)), this, SLOT(ajaxStopEventSlot(void)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
 }
 
 void NorwegianParser::getAccountList(QList<BankAccountInfo> &accList)
 {
-    loginIfNeeded();
     accList.append(accountMap.values());
 }
 
-bool NorwegianParser::login(QWebView* view)
+void NorwegianParser::loginIfNeeded(void)
 {
-    qDebug() << "NorwegianParser::login begin";
+    qDebug() << "NorwegianParser::loginIfNeeded begin";
   
-    view->setPage(accountPage);
+    connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+    disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)));
 
-    connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), Qt::QueuedConnection);
-    view->load(QUrl("https://www.banknorwegian.se/Login"));
+    accountPage->mainFrame()->load(QUrl("https://www.banknorwegian.se/MinSida"));
 
-    qDebug() << "NorwegianParser::login end";
-    return true;
-}
-
-bool NorwegianParser::isLoggedIn()
-{
-    return loggedInOk;
+    qDebug() << "NorwegianParser::loginIfNeeded end";
+    return;
 }
 
 void NorwegianParser::processAccount(const AccountJob &accountJob)
 {
     qDebug() << "NorwegianParser::processAccount begin " << accountJob.getAccountInfo().getMappedAccount();
 
-    loginIfNeeded();
+    yearSelected = false;
+    year = 0;
+
     s = new MyMoneyStatement();
     this->dateInterval = accountJob.getDateInterval();
     if(accountMap.contains(accountJob.getAccountInfo().getMappedAccount())) {
         s->m_accountId = accountJob.getAccountInfo().getId();
         qDebug() << "Load url " << accountMap.value(accountJob.getAccountInfo().getMappedAccount()).getUrl();
         accountPage->mainFrame()->load(accountMap.value(accountJob.getAccountInfo().getMappedAccount()).getUrl());
-        attachObject();
-        connect(accountPage->mainFrame(), SIGNAL(javaScriptWindowObjectCleared()), this, SLOT(attachObject()), Qt::QueuedConnection);
+ //       attachObject();
     }
     else {
         accountFinished(s);
@@ -138,9 +132,9 @@ bool NorwegianParser::parseStatements(QWebFrame* frame)
     return false;
 }
 
-void NorwegianParser::ajaxStopEvent()
+void NorwegianParser::ajaxStopEventSlot()
 {
-    qDebug() << "NorwegianParser::ajaxStopEvent begin";
+    qDebug() << "NorwegianParser::ajaxStopEventSlot begin";
   
     if(yearSelected == false)
     {
@@ -166,17 +160,17 @@ void NorwegianParser::ajaxStopEvent()
         accountFinished(s);
     }
 
-    qDebug() << "NorwegianParser::ajaxStopEvent end";
+    qDebug() << "NorwegianParser::ajaxStopEventSlot end";
 }
 
 void NorwegianParser::attachObject()
 {
     qDebug() << "NorwegianParser::attachObject begin";
 
-    accountPage->mainFrame()->addToJavaScriptWindowObject("MainWindow", this);
+    accountPage->mainFrame()->addToJavaScriptWindowObject("NorwegianParser", this);
 
-    const QString ajaxStopEvent = "$( document ).ajaxStop(function() { %1 }); null;";
-    accountPage->mainFrame()->evaluateJavaScript(ajaxStopEvent.arg("MainWindow.ajaxStopEvent();"));
+    const QString ajaxStopEvent = "$( document ).ajaxStop( NorwegianParser.ajaxStopEventSignal ); null;";
+    accountPage->mainFrame()->evaluateJavaScript(ajaxStopEvent);
 
     qDebug() << "NorwegianParser::attachObject done";
 }
@@ -185,15 +179,29 @@ void NorwegianParser::selectYear(const QString &wantedYear)
 {
     qDebug() << "NorwegianParser::selectYear begin " << wantedYear;
 
-   const QString selectYear = R"(document.getElementsByName("YearList")[0].value = "%1";
-                                 var event = document.createEvent('Event');
-                                 event.initEvent('change', true, true);
-                                 document.getElementsByName("YearList")[0].dispatchEvent(event);
-                                 null;)";
+    const QString selectYear = R"(document.getElementsByName("YearList")[0].value = "%1";
+                                  var event = document.createEvent('Event');
+                                  event.initEvent('change', true, true);
+                                  document.getElementsByName("YearList")[0].dispatchEvent(event);
+                                  null;)";
 
     accountPage->mainFrame()->evaluateJavaScript(selectYear.arg(wantedYear));
 
     qDebug() << "NorwegianParser::selectYear end";
+}
+
+void NorwegianParser::loadFinished(bool ok)
+{
+    qDebug() << "NorwegianParser::loadFinished11 begin" << accountPage->mainFrame()->url() << " " << ok;
+//    attachObject();
+ //   ajaxStopEventSlot();
+}
+
+void NorwegianParser::loadFinished2(bool ok)
+{
+    qDebug() << "NorwegianParser::loadFinished22 begin" << accountPage->mainFrame()->url() << " " << ok;
+//    attachObject();
+ //   ajaxStopEventSlot();
 }
 
 void NorwegianParser::login_loadFinished(bool ok)
@@ -204,9 +212,18 @@ void NorwegianParser::login_loadFinished(bool ok)
     {
         qDebug() << "NorwegianParser::isLoginFinished Done";
         parseAccountTables();
+        connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+        connect(accountPage->mainFrame(), SIGNAL(loadFinished(bool)), this, SLOT(loadFinished2(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+
         disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)));
-        loggedInOk = true;
         emit loginFinished(true);
+        ld->closeLoginDialog();
     }
+    else {
+        if(!ld->isDialogOpen()) {
+            ld->openLoginDialog(accountPage, QUrl("https://www.banknorwegian.se/Login"));
+        }
+    }
+
     qDebug() << "NorwegianParser::isLoginFinished end";
 }

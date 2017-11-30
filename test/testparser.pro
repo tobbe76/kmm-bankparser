@@ -17,8 +17,11 @@ INCLUDEPATH += ../bankparser/dialogs
 
 QMAKE_CXXFLAGS += -std=c++11
 
+DEFINES += "TEST_BANK=1"
+
 SOURCES += main.cpp\
   mainwindow.cpp \
+  ../bankparser/testparser.cpp \
   ../bankparser/bankparser.cpp \
   ../bankparser/debugwebpage.cpp \
   ../bankparser/sebparser.cpp \
@@ -33,16 +36,15 @@ SOURCES += main.cpp\
   ../bankparser/dialogs/logindialog.cpp
 
 HEADERS  += mainwindow.h \
-    ../bankparser/logininterface.h \
     ../bankparser/sebparser.h \
     ../bankparser/kmmaccountinfo.h \
     ../bankparser/bankaccountinfo.h \
     ../bankparser/swedbankparser.h \
     ../bankparser/norwegianparser.h \
     ../bankparser/handelsbankenparser.h \
+    ../bankparser/testparser.h \
     ../bankparser/bankparser.h \
     ../bankparser/dateinterval.h \
-    ../bankparser/logininterface.h \
     ../bankparser/dialogs/logindialog.h \
     ../bankparser/dialogs/datesdialog.h \
     ../bankparser/dialogs/kmmaccountinfowidget.h \
@@ -54,7 +56,13 @@ HEADERS  += mainwindow.h \
 
 
 FORMS    += mainwindow.ui
- FORMS   += ../bankparser/dialogs/kmmaccountinfowidget.ui
+FORMS    += ../bankparser/dialogs/kmmaccountinfowidget.ui
 FORMS    += ../bankparser/dialogs/logindialog.ui
 FORMS    += ../bankparser/dialogs/mapaccountdialog.ui
 FORMS    += ../bankparser/dialogs/datesdialog.ui
+
+RESOURCES += \
+    testsupport.qrc
+
+DISTFILES += \
+    testLogin.html

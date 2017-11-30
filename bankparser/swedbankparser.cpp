@@ -21,36 +21,35 @@
 #include <QWebView>
 #include <QDebug>
 #include <QTimer>
+#include "debugwebpage.h"
 
 SwedbankParser::SwedbankParser()
 {
-    qDebug() << "********************** construct ";
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
     loggedInOk = false;
+    accountPage = new DebugWebPage(this);
+    ld = new BrowserLoginDialog();
 }
 
-bool SwedbankParser::login(QWebView* view)
+void SwedbankParser::loginIfNeeded(void)
 {
   qDebug() << "SwedbankParser::login start";
-  
-  accountPage = new QWebPage(this);
-  
-  view->setPage(accountPage);
 
-  connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), Qt::QueuedConnection);
-  connect(accountPage->mainFrame(), SIGNAL(urlChanged(const QUrl&)), this, SLOT(urlChanged(const QUrl&)), Qt::QueuedConnection);
-  view->load(QUrl("https://demo.swedbank.se/app/privat/login"));
+  if(!loggedInOk) {
 
-  loggedInOk = true;
+      ld->openLoginDialog(accountPage, QUrl("https://demo.swedbank.se/app/privat/login"));
+
+      connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+      connect(accountPage->mainFrame(), SIGNAL(urlChanged(const QUrl&)), this, SLOT(urlChanged(const QUrl&)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+
+      loggedInOk = true;
+  }
+  else {
+      emit loginFinished(true);
+  }
+
   qDebug() << "SwedbankParser::login end";
   
-  return true;
-}
-
-bool SwedbankParser::isLoggedIn()
-{
-  return loggedInOk;
+  return;
 }
 
 void SwedbankParser::accountFinished()
@@ -63,7 +62,7 @@ void SwedbankParser::processAccount(const AccountJob &accountJob)
   s = new MyMoneyStatement();
   this->dateInterval = accountJob.getDateInterval();
   if(accountList.contains(accountJob.getAccountInfo().getMappedAccount())) {
-    s->m_accountId = accountJob.getAccountInfo().getId();
+    s->m_accountId = accountJob.getAccountInfo().getId();    
     qDebug() << "Load url " << accountList.value(accountJob.getAccountInfo().getMappedAccount());
     accountPage->mainFrame()->load(accountList.value(accountJob.getAccountInfo().getMappedAccount()));
   }
@@ -74,13 +73,6 @@ void SwedbankParser::processAccount(const AccountJob &accountJob)
 
 SwedbankParser::~SwedbankParser()
 {
-}
-
-void SwedbankParser::timeout()
-{
-    qDebug() << "TimeOut";
-    timer->stop();
-    loadFinished(true);
 }
 
 void SwedbankParser::writeQifStatement(QDate date, QString payee, QString sum, QString memo, quint16 verif)
@@ -102,11 +94,11 @@ bool SwedbankParser::parseStatements(QWebElement s)
     return false;
 }
 
-void SwedbankParser::epa()
+void SwedbankParser::accountsLoadedReq()
 {
     accountPage->mainFrame()->evaluateJavaScript
-                            ("Sys.WebForms.PageRequestManager.getInstance().remove_endRequest(MainWindow.epa);");
-    timer->start(100); //Todo change to poll with 100ms
+                            ("Sys.WebForms.PageRequestManager.getInstance().remove_endRequest(SwedbankParser.accountsLoadedReq);");
+    qDebug() << "HOHO accountsLoadedReq";
 }
 
 void SwedbankParser::loadFinished(bool arg1)
@@ -137,23 +129,26 @@ void SwedbankParser::loadFinished(bool arg1)
 
 void SwedbankParser::getAccountList(QList<BankAccountInfo> &accList)
 {
-    Q_UNUSED(accList);
-    loginIfNeeded();
+    accList.append(accountMap.values());
 }
 
-void SwedbankParser::parseAccountTables(bool ok)
+void SwedbankParser::parseAccountTables()
 {
     qDebug() << "SwedbankParser::parseAccountTables begin";
 
     const QString accountListParser = R"(
+            var accArr = [];
             var accLists = document.getElementsByClassName("_list _list--striped-reverse");
             for(var i = 0; i < accLists.length; i++) {
-                var infoList = accList[i].getElementsByTagName("li");
+                var infoLists = accLists[i].getElementsByTagName("li");
                 for(var j = 0; j < infoLists.length; j++) {
-                    console.log(infoLists[j].innerText);
+                    var nameEl = infoLists[j].getElementsByTagName("sw-label");
+                    var nrEl = infoLists[j].getElementsByTagName("sw-label-detail");
+                    if(nrEl.length > 0 && nameEl.length > 0) {
+                      accArr.push({Name:nameEl[0].innerText, Number:nrEl[0].innerText});
+                    }
                 }
             }
-            var accArr = [];
             accArr;)";
 
     QVariant res = accountPage->mainFrame()->evaluateJavaScript(accountListParser);
@@ -163,12 +158,16 @@ void SwedbankParser::parseAccountTables(bool ok)
     {
         QMap<QString, QVariant> map = list[i].toMap();
         BankAccountInfo account;
-        account.setUrl(QUrl(map["Link"].toString()));
+   //     account.setUrl("Empty");
         account.setName(map["Name"].toString());
         account.setNumber(map["Number"].toString());
         account.setKey(map["Number"].toString().replace(" ", ""));
         accountMap[account.getKey()] = account;
     }
+
+    loggedInOk = true;
+    emit loginFinished(true);
+    ld->closeLoginDialog();
 
     qDebug() << "SwedbankParser::parseAccountTables end";
 }
@@ -177,15 +176,6 @@ void SwedbankParser::login_loadFinished(bool ok)
 {
     qDebug() << "SwedbankParser::login_loadFinished begin" << accountPage->mainFrame()->url() << " " << ok;
 
-    if(QUrl("https://demo.swedbank.se/app/privat/start-page") == accountPage->mainFrame()->url())
-    {
-        qDebug() << "SwedbankParser::isLoginFinished Done";
-        connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), Qt::QueuedConnection);
-        disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)));
-        loggedInOk = true;
-        emit loginFinished(true);
-        accountPage->mainFrame()->load(QUrl("https://demo.swedbank.se/app/privat/konton-och-kort"));
-    }
     qDebug() << "SwedbankParser::login_loadFinished end";
 }
 
@@ -194,11 +184,22 @@ void SwedbankParser::urlChanged(const QUrl & url) {
     if(QUrl("https://demo.swedbank.se/app/privat/start-page") == accountPage->mainFrame()->url())
     {
         qDebug() << "SwedbankParser::urlChanged Done";
-        connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), Qt::QueuedConnection);
         disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)));
-        loggedInOk = true;
-        emit loginFinished(true);
-        accountPage->mainFrame()->load(QUrl("https://demo.swedbank.se/app/privat/konton-och-kort"));
+
+        accountPage->mainFrame()->addToJavaScriptWindowObject("SwedbankParser", this);
+
+        QString SwedbankGetAccounts = R"(
+         var sidebar = document.getElementById("sidebarArea");
+         var butts = sidebar.getElementsByTagName("a");
+         var event = document.createEvent('Event');
+         event.initEvent('click', true, true);
+         butts[1].dispatchEvent(event);)";
+
+        accountPage->mainFrame()->evaluateJavaScript(SwedbankGetAccounts);
     }
-    qDebug() << "SwedbankParser::login_loadFinished end";
+    else if(QUrl("https://demo.swedbank.se/app/privat/konton-och-kort") == accountPage->mainFrame()->url())
+    {
+        QTimer::singleShot(100, this, SLOT(parseAccountTables()));
+    }
+    qDebug() << "SwedbankParser::urlChanged end";
 }

@@ -34,22 +34,21 @@ class NorwegianParser : public BankParser
 public:
     NorwegianParser();
     ~NorwegianParser();
-    bool login(QWebView* view);
-    bool isLoggedIn();
     void processAccount(const AccountJob& accountJob);
     void getAccountList(QList<BankAccountInfo> &accList);
+    void loginIfNeeded(void);
 
 public slots:
-    void ajaxStopEvent();
+    void ajaxStopEventSlot();
     void attachObject();
 
- signals:
-    void accountFinishedSignal(MyMoneyStatement* s);
-    void loginFinished(bool result);
-
+signals:
+    void ajaxStopEventSignal(void);
     
 private slots:
     void login_loadFinished(bool ok);
+    void loadFinished(bool result);
+    void loadFinished2(bool result);
 
 private:
     void parseAccountTables();
@@ -62,7 +61,6 @@ private:
     MyMoneyStatement* s;
     DateInterval dateInterval;
     bool yearSelected;
-    bool loggedInOk;
 };
 
 #endif

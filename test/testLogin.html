@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<p>Simulates log in to TestBank</p>
+
+<button onclick="myFunction()">Click to log in</button>
+
+<p id="demo"></p>
+
+<script>
+function myFunction() {
+    TestParser.jsLoginCallbackSignal();
+    document.getElementById("demo").innerHTML = "Logged in OK";
+}
+</script>
+
+</body>
+</html>

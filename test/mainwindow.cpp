@@ -10,7 +10,6 @@
 #include <QMouseEvent>
 #include "sebparser.h"
 #include "norwegianparser.h"
-#include "logininterface.h"
 #include "logindialog.h"
 #include <QGraphicsRectItem>
 #include "parserfactory.h"
@@ -24,28 +23,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+ //   QWebSettings::setObjectCacheCapacities(0, 0, 0);
     QWebSettings::globalSettings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
 
-    first = true;
     ui->comboBox->addItems(ParserFactory::supportedParsers());
     ui->comboBox->addItem("RunAll");
+    ui->comboBox->addItem("TESTBANKs");
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-QString MainWindow::readFile(QString file)
-{
-    QFile f(file);
-    if (!f.open(QFile::ReadOnly | QFile::Text)) {
-        qDebug() << "Failed to open file " << file;
-        return "";
-    }
-    QTextStream in(&f);
-
-    return in.readAll();
 }
 
 void MainWindow::webView_loadFinished(bool arg1)
@@ -85,7 +73,6 @@ void MainWindow::testParser1(QList<KmmAccountInfo>& accounts)
         connect(parser, SIGNAL(accountFinishedSignal(MyMoneyStatement*)),
                 this, SLOT(accountFinished(MyMoneyStatement*)),
                 Qt::UniqueConnection);
-        qDebug() << "START PROCESS ACCOUNT";
         parser->processAccount(accounts[i], dateInterval);
     }
 }
@@ -113,22 +100,43 @@ void MainWindow::on_testStartButton_clicked()
     }
     else if(name == "SEB")
     {
-        accounts.append(KmmAccountInfo("Hus", "5048 00375 66", "Seb", "ID3", QDate::currentDate(), QDate::currentDate(), name, "50480037566"));
+        accounts.append(KmmAccountInfo("Hus", "5048 00375 66", "Seb", "ID3", QDate::currentDate(), QDate::currentDate(), name, "50440105730"));
     }
     else if(name == "NORWEGIAN")
     {
         accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "Norwegian", "ID5", QDate::currentDate(), QDate::currentDate(), name, "12345678"));
     }
+    else if(name == "SWEDBANK")
+    {
+        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "Swedbank", "ID5", QDate::currentDate(), QDate::currentDate(), name, "12345678"));
+    }
     else if(name == "HANDELSBANKEN")
     {
         accounts.append(KmmAccountInfo("HandelsBanken", "aa345678", "Norwegian", "ID4",
                                        QDate::currentDate(), QDate::currentDate(), name, "401942621"));
-        accounts.append(KmmAccountInfo("HandelsBanken", "12345678", "Norwegian", "ID5",
+/*        accounts.append(KmmAccountInfo("HandelsBanken", "12345678", "Norwegian", "ID5",
                                        QDate::currentDate(), QDate::currentDate(), name, "401942511"));
         accounts.append(KmmAccountInfo("HandelsBanken", "45321", "Norwegian", "ID6",
                                        QDate::currentDate(), QDate::currentDate(), name, "72806508"));
         accounts.append(KmmAccountInfo("HandelsBanken", "aa321", "Norwegian", "ID7",
                                        QDate::currentDate(), QDate::currentDate(), name, "72806338"));
+*/
+    }
+    else if(name == "TESTBANK1")
+    {
+        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "TESTBANK1", "ID5", QDate::currentDate(), QDate::currentDate(), name, "500.1111"));
+    }
+    else if(name == "TESTBANK2")
+    {
+        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "TESTBANK2", "ID5", QDate::currentDate(), QDate::currentDate(), name, "500.1111"));
+    }
+    else if(name == "TESTBANKs")
+    {
+        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "TESTBANK1", "ID5", QDate::currentDate(), QDate::currentDate(), "TESTBANK1", "500.1111"));
+        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "TESTBANK2", "ID5", QDate::currentDate(), QDate::currentDate(), "TESTBANK2", "500.1111"));
+        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "TESTBANK2", "ID5", QDate::currentDate(), QDate::currentDate(), "TESTBANK2", "500.1112"));
+        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "TESTBANK2", "ID5", QDate::currentDate(), QDate::currentDate(), "TESTBANK2", "500.1113"));
+
     }
     testParser1(accounts);
 }
@@ -139,4 +147,9 @@ void MainWindow::on_mapAccount_clicked()
     MapAccountDialog dlg(account);
     dlg.exec();
     qDebug() << "SELECTED " << dlg.getAccountNr() << "  " << dlg.getSelectedParser();
+}
+
+void MainWindow::on_clearLog_clicked()
+{
+    ui->transList->clear();
 }

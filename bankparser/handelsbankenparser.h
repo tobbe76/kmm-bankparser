@@ -34,14 +34,9 @@ class HandelsbankenParser : public BankParser
 public:
     HandelsbankenParser();
     ~HandelsbankenParser();
-    bool login(QWebView* view);
-    bool isLoggedIn();
     void processAccount(const AccountJob& accountJob);
     void getAccountList(QList<BankAccountInfo> &accList);
-
- signals:
-    void accountFinishedSignal(MyMoneyStatement* s);
-    void loginFinished(bool result);
+    void loginIfNeeded(void);
       
 private slots:
     void login_loadFinished(bool ok);

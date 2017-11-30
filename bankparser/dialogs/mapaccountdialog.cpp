@@ -96,8 +96,11 @@ void MapAccountDialog::bankparserBox_currentIndexChanged(const QString &arg1)
     bank = arg1;
 
     BankParser* parser = ParserFactory::getParser(arg1);
-    QList<BankAccountInfo> list;
-    parser->getAccountList(list);
-    accountListModel->setAccountList(list);
+    connect(parser, SIGNAL(accountListFinishedSignal(QList<BankAccountInfo>)), this, SLOT(accountListFinishedSlot(QList<BankAccountInfo>)));
+    parser->getAccountList();
 }
 
+void MapAccountDialog::accountListFinishedSlot(QList<BankAccountInfo> accList)
+{
+    accountListModel->setAccountList(accList);
+}

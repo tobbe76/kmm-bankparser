@@ -37,21 +37,14 @@ void PendingAccounJobs::addJob(const AccountJob &job)
 BankParser::BankParser()
 {
     isParsing = false;
-}
+    waitingOp = 0;
+    connect(this, SIGNAL(loginFinished(bool)), this, SLOT(loginFinishedSlot(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
 
-void BankParser::loginIfNeeded()
-{
-    if(!isLoggedIn())
-    {
-        LoginDialog ld;
-        ld.loginBank(this);
-        ld.setModal(true);
-        ld.exec();
-    }
 }
 
 void BankParser::accountFinished(MyMoneyStatement *s)
 {
+    qDebug("EMIT accountFinishedSignal");
     emit accountFinishedSignal(s);
     if(pendingAccounJobs.isPendingJob())
     {
@@ -79,17 +72,43 @@ void BankParser::addStatement(MyMoneyStatement *s, const QDate &date, const QStr
 
 void BankParser::processAccount(KmmAccountInfo& accountInfo, const DateInterval &dateInterval)
 {
-    loginIfNeeded();
+    qDebug() << "BankParser::processAccount begin";
     AccountJob job(accountInfo, dateInterval);
-    if(isParsing)
+    pendingAccounJobs.addJob(job);
+    if(waitingOp == 0)
     {
-        qDebug() << "Add pending job" << isParsing;
-        pendingAccounJobs.addJob(job);
+        waitingOp = 2;
+        loginIfNeeded();
     }
-    else
+    else {
+        qDebug() << "Login already in progress";
+    }
+}
+
+void BankParser::getAccountList()
+{
+    waitingOp = 1;
+    loginIfNeeded();
+}
+
+void BankParser::loginFinishedSlot(bool result) {
+    qDebug() << "BankParser::loginFinishedSlot BEGIN";
+    if(waitingOp == 1)
     {
-        qDebug() << "Run job" << isParsing;
-        isParsing = true;
-        processAccount(job);
+        QList<BankAccountInfo> list;
+        getAccountList(list);
+        emit accountListFinishedSignal(list);
     }
+    else if(waitingOp == 2)
+    {
+        if(!isParsing && pendingAccounJobs.isPendingJob())
+        {
+            qDebug() << "Run First job" << isParsing;
+            isParsing = true;
+            processAccount(pendingAccounJobs.getJob());
+        }
+    }
+    waitingOp = 0;
+    qDebug() << "BankParser::loginFinishedSlot END";
+
 }

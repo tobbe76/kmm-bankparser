@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>LoginDialog</class>
- <widget class="QDialog" name="LoginDialog">
+ <class>BrowserLoginDialog</class>
+ <widget class="QDialog" name="BrowserLoginDialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -16,7 +19,7 @@
   <property name="modal">
    <bool>false</bool>
   </property>
-  <widget class="QWebView" name="webView">
+  <widget class="QWebView" name="webView" native="true">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -25,7 +28,7 @@
      <height>531</height>
     </rect>
    </property>
-   <property name="url">
+   <property name="url" stdset="0">
     <url>
      <string>about:blank</string>
     </url>

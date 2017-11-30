@@ -23,35 +23,35 @@
 #include <QTimer>
 #include "debugwebpage.h"
 
-HandelsbankenParser::HandelsbankenParser() : BankParser()
+HandelsbankenParser::HandelsbankenParser()
 {
     loggedInOk = false;
     accountPage = new DebugWebPage(this);
+    ld = new BrowserLoginDialog();
+
 }
 
-bool HandelsbankenParser::login(QWebView* view)
+void HandelsbankenParser::loginIfNeeded(void)
 {
     qDebug() << "HandelsbankenParser::login begin";
 
-    view->setPage(accountPage);
+    if(!loggedInOk) {
 
-    connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), Qt::QueuedConnection);
-    view->load(QUrl("https://ow.handelsbanken.se/bb/seok/idemstatic/MOVE/MOVE_index_privat.html"));
+        ld->openLoginDialog(accountPage, QUrl("https://ow.handelsbanken.se/bb/seok/idemstatic/MOVE/MOVE_index_privat.html"));
+        connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+    }
+    else {
+        emit loginFinished(true);
+    }
 
     qDebug() << "HandelsbankenParser::login end";
 
-    return true;
-}
-
-bool HandelsbankenParser::isLoggedIn()
-{
-    return loggedInOk;
+    return;
 }
 
 void HandelsbankenParser::processAccount(const AccountJob &accountJob)
 {
     qDebug() << "HandelsbankenParser::processAccount begin";
-    loginIfNeeded();
     s = new MyMoneyStatement();
     this->dateInterval = accountJob.getDateInterval();
     if(accountMap.contains(accountJob.getAccountInfo().getMappedAccount())) {
@@ -158,7 +158,6 @@ void HandelsbankenParser::loadFinished(bool ok)
 
 void HandelsbankenParser::getAccountList(QList<BankAccountInfo> &accList)
 {
-    loginIfNeeded();
     accList.append(accountMap.values());
 }
 
@@ -172,10 +171,11 @@ void HandelsbankenParser::login_loadFinished(bool ok)
         {
             qDebug() << "HandelsbankenParser::login_loadFinished Done";
             parseAccountTables();
-            connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)), Qt::QueuedConnection);
+            connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
             disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)));
             loggedInOk = true;
             emit loginFinished(true);
+            ld->closeLoginDialog();
         }
 
         qDebug() << "HandelsbankenParser::login_loadFinished end";

@@ -53,8 +53,11 @@ public:
     QString getAccountNr() const;
     QString getSelectedParser() const;
 
-private slots:
+public slots:
+    void accountListFinishedSlot(QList<BankAccountInfo> accList);
 
+
+private slots:
     void on_bankAccList_clicked(const QModelIndex &index);
 
     void bankparserBox_currentIndexChanged(const QString &arg1);

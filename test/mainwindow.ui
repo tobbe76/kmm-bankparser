@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1070</width>
-    <height>659</height>
+    <height>663</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -60,14 +60,27 @@
    <widget class="QPushButton" name="mapAccount">
     <property name="geometry">
      <rect>
-      <x>110</x>
+      <x>89</x>
       <y>570</y>
-      <width>80</width>
+      <width>101</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
      <string>Map Account</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="clearLog">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>570</y>
+      <width>101</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Clear log</string>
     </property>
    </widget>
   </widget>
@@ -77,7 +90,7 @@
      <x>0</x>
      <y>0</y>
      <width>1070</width>
-     <height>27</height>
+     <height>31</height>
     </rect>
    </property>
   </widget>

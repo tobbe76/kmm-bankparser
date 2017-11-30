@@ -21,27 +21,26 @@
 #include <QDialog>
 #include <qwebpage.h>
 #include <QDebug>
-#include "logininterface.h"
 
 namespace Ui {
-class LoginDialog;
+class BrowserLoginDialog;
 }
 
-class LoginDialog : public QDialog
+class BrowserLoginDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit LoginDialog(QWidget *parent = 0);
-    void loginBank(LoginInterface *bank);
-    ~LoginDialog();
+    explicit BrowserLoginDialog(QWidget *parent = 0);
+    ~BrowserLoginDialog();
 
-public slots:
-   void loginFinished(bool result);
+    void openLoginDialog(QWebPage *webpage, QUrl url);
+    void closeLoginDialog(void);
+    bool isDialogOpen();
 
 private:
-    Ui::LoginDialog *ui;
-    LoginInterface *currentBank;
+    Ui::BrowserLoginDialog *ui;
+    bool isOpen;
 };
 
 #endif // LOGINDIALOG_H

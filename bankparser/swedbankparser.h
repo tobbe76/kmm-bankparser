@@ -35,23 +35,20 @@ class SwedbankParser : public BankParser
 public:
     SwedbankParser();
     ~SwedbankParser();
-    bool login(QWebView* view);
-    bool isLoggedIn();
     void processAccount(const AccountJob& accountJob);
     void getAccountList(QList<BankAccountInfo> &accList);
+    void loginIfNeeded(void);
 
  signals:
-    void loginFinished(bool result);
     void accountFinishedSignal(MyMoneyStatement* s);
     
 public slots:
-    void epa();
+    void accountsLoadedReq();
   
 private slots:
     void loadFinished(bool arg1);
-    void timeout();
     void login_loadFinished(bool ok);
-    void parseAccountTables(bool ok);
+    void parseAccountTables();
     void urlChanged(const QUrl & url);
 
 private:
@@ -59,7 +56,6 @@ private:
     bool parseStatements(QWebElement s);
     void accountFinished();
 
-    QTimer *timer;
     QWebPage* accountPage;
     QMap<QString, QUrl> accountList;
     QMap<QString, BankAccountInfo> accountMap;

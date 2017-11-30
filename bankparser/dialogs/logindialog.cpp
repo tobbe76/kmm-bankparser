@@ -20,33 +20,35 @@
 #include <qwebelement.h>
 #include <qwebframe.h>
 
-LoginDialog::LoginDialog(QWidget *parent) :
+BrowserLoginDialog::BrowserLoginDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::LoginDialog)
+    ui(new Ui::BrowserLoginDialog)
 {
     ui->setupUi(this);
-    QWebSettings::globalSettings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+    isOpen = false;
 }
 
-void LoginDialog::loginBank(LoginInterface *bank)
+void BrowserLoginDialog::openLoginDialog(QWebPage *webpage, QUrl url)
 {
-    currentBank = bank;
-    connect(currentBank, SIGNAL(loginFinished(bool)), this, SLOT(loginFinished(bool)), Qt::QueuedConnection);
-    bank->login(ui->webView);
+    isOpen = true;
+    ui->webView->setPage(webpage);
+    ui->webView->load(url);
+    setModal(true);
+    open();
 }
 
-LoginDialog::~LoginDialog()
+BrowserLoginDialog::~BrowserLoginDialog()
 {
     delete ui;
 }
 
-void LoginDialog::loginFinished(bool result)
+void BrowserLoginDialog::closeLoginDialog(void)
 {
-  qDebug() << "LoginDialog::loginFinished start result " << result;
-
-  disconnect(currentBank, SIGNAL(loginFinished(bool)), this, SLOT(loginFinished(bool)));
-
   done(0);
+  isOpen = false;
+}
 
-  qDebug() << "LoginDialog::loginFinished end";
+bool BrowserLoginDialog::isDialogOpen(void)
+{
+    return isOpen;
 }
