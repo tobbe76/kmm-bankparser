@@ -20,7 +20,6 @@
 
 #include <QUrl>
 #include <QMap>
-#include <QWebElement>
 #include <QFile>
 #include <QTimer>
 #include <QTextStream>
@@ -39,28 +38,20 @@ public:
     void loginIfNeeded(void);
 
 public slots:
-    void ajaxStopEventSlot();
-    void attachObject();
-
-signals:
-    void ajaxStopEventSignal(void);
+    void parseStatementsResponse(const QVariantList &res);
+    void webChannelInitialized();
     
 private slots:
     void login_loadFinished(bool ok);
-    void loadFinished(bool result);
-    void loadFinished2(bool result);
 
 private:
     void parseAccountTables();
-    bool parseStatements(QWebFrame *frame);
-    void selectYear(const QString &wantedYear);
 
     QMap<QString, BankAccountInfo> accountMap;
-    int year;
-    QWebPage* accountPage;
     MyMoneyStatement* s;
     DateInterval dateInterval;
-    bool yearSelected;
+    QString nextCommand;
+
 };
 
 #endif

@@ -20,7 +20,6 @@
 
 #include <QUrl>
 #include <QMap>
-#include <QWebElement>
 #include <QFile>
 #include <QTimer>
 #include <QTextStream>
@@ -38,26 +37,16 @@ public:
     void processAccount(const AccountJob& accountJob);
     void getAccountList(QList<BankAccountInfo> &accList);
     void loginIfNeeded(void);
-
- signals:
-    void accountFinishedSignal(MyMoneyStatement* s);
     
 public slots:
-    void accountsLoadedReq();
-  
+    void parseAccountTables(const QVariant &res);
+    void parseStatements(const QVariant &res);
+
 private slots:
-    void loadFinished(bool arg1);
-    void login_loadFinished(bool ok);
-    void parseAccountTables();
     void urlChanged(const QUrl & url);
 
 private:
-    void writeQifStatement(QDate date, QString payee, QString sum, QString memo, quint16 verif);
-    bool parseStatements(QWebElement s);
-    void accountFinished();
 
-    QWebPage* accountPage;
-    QMap<QString, QUrl> accountList;
     QMap<QString, BankAccountInfo> accountMap;
     MyMoneyStatement* s;
     DateInterval dateInterval;

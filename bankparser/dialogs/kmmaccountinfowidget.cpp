@@ -17,8 +17,6 @@
 
 #include "kmmaccountinfowidget.h"
 #include "ui_kmmaccountinfowidget.h"
-#include <qwebelement.h>
-#include <qwebframe.h>
 
 int KmmAccountTableModel::rowCount(const QModelIndex &parent) const
 {

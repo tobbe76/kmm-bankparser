@@ -19,7 +19,6 @@
 #define DATESDIALOG_H
 
 #include <QDialog>
-#include <qwebpage.h>
 #include <QDebug>
 #include "kmmaccountinfo.h"
 #include <QDate>
@@ -47,9 +46,9 @@ private slots:
 
     void on_buttonBox_rejected();
 
-    void on_toDate_userDateChanged(const QDate &date);
+    void on_toDate_dateChanged(const QDate &date);
 
-    void on_fromDate_userDateChanged(const QDate &date);
+    void on_fromDate_dateChanged(const QDate &date);
 
 private:
     void setDatesOk();

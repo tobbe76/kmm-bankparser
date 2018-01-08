@@ -21,7 +21,6 @@
 #include <QUrl>
 #include <QMap>
 #include <QDate>
-#include <QWebElement>
 #include <QFile>
 #include <QTimer>
 #include <QTextStream>
@@ -41,18 +40,15 @@ public:
  signals:
     void newPageLoadedSignal(void);
     void statementExpandedSignal(void);
-    void jsLoginCallbackSignal(void);
 
 public slots:
-    void jsLoginCallbackSlot();
+    void jsLoginCallback();
 
 private slots:
-    void login_loadFinished(bool ok);
     void processAccountTimout();
 
 private:
 
-    QWebPage* accountPage;
     QMap<QString, BankAccountInfo> accountMap;
     MyMoneyStatement* s;
     QList<int> rowsToExpand;

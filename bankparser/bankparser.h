@@ -20,8 +20,6 @@
 
 #include <QUrl>
 #include <QMap>
-#include <QWebElement>
-#include <QWebView>
 #include <QFile>
 #include <QTimer>
 #include <QTextStream>
@@ -30,6 +28,10 @@
 #include "kmmaccountinfo.h"
 #include "dateinterval.h"
 #include "logindialog.h"
+#include "debugwebpage.h"
+#ifdef USE_WEBENGINE
+#include <QWebChannel>
+#endif
 
 class AccountJob
 {
@@ -62,6 +64,8 @@ class BankParser : public QObject
 
 public:
     BankParser();
+    BankParser(QString javaScriptFile);
+
     virtual ~BankParser() {};
 
     /* Parse the statements for all accounts */
@@ -75,7 +79,11 @@ signals:
 
 public slots:
     void loginFinishedSlot(bool result);
-
+    virtual void webChannelInitialized();
+#ifdef USE_WEBKIT
+    void attachObject();
+    void loadFinished(bool res);
+#endif
 protected:
     void accountFinished(MyMoneyStatement* s);
     virtual void processAccount(const AccountJob& accountJob) = 0;
@@ -83,11 +91,17 @@ protected:
     virtual void loginIfNeeded() = 0;
     void addStatement(MyMoneyStatement *s, const QDate& date, const QString& payee, const QString& sum, const QString& memo, const quint16& verif);
     BrowserLoginDialog *ld;
+    DebugWebPage* accountPage;
+#ifdef USE_WEBENGINE
+    QWebChannel* channel_;
+#endif
 
 private:
+    QString readFile(QString fileName);
     bool isParsing;
     PendingAccounJobs pendingAccounJobs;
     int waitingOp;
+    QString script;
 };
 
 #endif

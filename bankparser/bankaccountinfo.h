@@ -33,12 +33,14 @@ public:
     QString getKey() const {return Key;};
     QString getNumber() const {return Number;};
     QUrl getUrl() const {return Url;};
+    int getIndex() const {return Index;};
 
     void setName(const QString &name) {Name = name;};
     void setNumber(const QString &number) {Number = number;};
     void setKey(const QString &key) {Key = key;};
     void setId(const QString &id) {Id = id;};
     void setUrl(const QUrl &url) {Url = url;};
+    void setIndex(const int index) {Index = index;};
 
   private:
     QString Name;
@@ -47,6 +49,7 @@ public:
     QString Key;
     QString Description;
     QUrl    Url;
+    int     Index;
 };
 
 #endif

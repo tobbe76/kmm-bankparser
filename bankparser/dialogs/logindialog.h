@@ -19,8 +19,8 @@
 #define LOGINDIALOG_H
 
 #include <QDialog>
-#include <qwebpage.h>
 #include <QDebug>
+#include "debugwebpage.h"
 
 namespace Ui {
 class BrowserLoginDialog;
@@ -34,7 +34,7 @@ public:
     explicit BrowserLoginDialog(QWidget *parent = 0);
     ~BrowserLoginDialog();
 
-    void openLoginDialog(QWebPage *webpage, QUrl url);
+    void openLoginDialog(DebugWebPage *webpage, QUrl url);
     void closeLoginDialog(void);
     bool isDialogOpen();
 

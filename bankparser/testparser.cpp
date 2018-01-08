@@ -16,9 +16,6 @@
  ***************************************************************************/
 
 #include "testparser.h"
-#include <QWebElement>
-#include <QWebFrame>
-#include <QWebView>
 #include <QDebug>
 #include <QTimer>
 #include "debugwebpage.h"
@@ -26,9 +23,7 @@
 TestParser::TestParser()
 {
     loggedInOk = false;
-    accountPage = new DebugWebPage(this);
     ld = new BrowserLoginDialog();
-    connect(this, SIGNAL(jsLoginCallbackSignal(void)), this, SLOT(jsLoginCallbackSlot(void)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
 
 }
 
@@ -39,7 +34,6 @@ void TestParser::loginIfNeeded(void)
     if(!loggedInOk) {
 
         ld->openLoginDialog(accountPage, QUrl("qrc:///html/testLogin.html"));
-        connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
     }
     else {
         emit loginFinished(true);
@@ -69,6 +63,7 @@ void TestParser::processAccountTimout()
 
 void TestParser::processAccount(const AccountJob &accountJob)
 {
+    Q_UNUSED(accountJob);
     qDebug() << "TestParser::processAccount begin";
     s = new MyMoneyStatement();
     QTimer::singleShot(3000, this, SLOT(processAccountTimout()));
@@ -85,22 +80,12 @@ void TestParser::getAccountList(QList<BankAccountInfo> &accList)
     qDebug() << "TestParser::getAccountList end";
 }
 
-void TestParser::login_loadFinished(bool ok)
-{
-    qDebug() << "TestParser::login_loadFinished begin";
-
-    accountPage->mainFrame()->addToJavaScriptWindowObject("TestParser", this);
-
-    qDebug() << "TestParser::login_loadFinished end";
-}
-
-void TestParser::jsLoginCallbackSlot()
+void TestParser::jsLoginCallback()
 {
     qDebug() << "TestParser::jsLoginCallback begin";
     loggedInOk = true;
     emit loginFinished(true);
     ld->closeLoginDialog();
-    disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)));
 
     qDebug() << "TestParser::jsLoginCallback end";
 }

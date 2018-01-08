@@ -16,19 +16,15 @@
  ***************************************************************************/
 
 #include "handelsbankenparser.h"
-#include <QWebElement>
-#include <QWebFrame>
-#include <QWebView>
 #include <QDebug>
 #include <QTimer>
 #include "debugwebpage.h"
 
-HandelsbankenParser::HandelsbankenParser()
+HandelsbankenParser::HandelsbankenParser() :
+    BankParser(":/files/js/handelsbanken.js")
 {
     loggedInOk = false;
-    accountPage = new DebugWebPage(this);
     ld = new BrowserLoginDialog();
-
 }
 
 void HandelsbankenParser::loginIfNeeded(void)
@@ -36,7 +32,7 @@ void HandelsbankenParser::loginIfNeeded(void)
     qDebug() << "HandelsbankenParser::login begin";
 
     if(!loggedInOk) {
-
+        nextCommand = "parseAccounts();";
         ld->openLoginDialog(accountPage, QUrl("https://ow.handelsbanken.se/bb/seok/idemstatic/MOVE/MOVE_index_privat.html"));
         connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
     }
@@ -57,7 +53,8 @@ void HandelsbankenParser::processAccount(const AccountJob &accountJob)
     if(accountMap.contains(accountJob.getAccountInfo().getMappedAccount())) {
         s->m_accountId = accountJob.getAccountInfo().getId();
         qDebug() << "Load url " << accountMap.value(accountJob.getAccountInfo().getMappedAccount()).getUrl();
-        accountPage->mainFrame()->load(accountMap.value(accountJob.getAccountInfo().getMappedAccount()).getUrl());
+        nextCommand = "parseStatements();";
+        accountPage->loadPage(accountMap.value(accountJob.getAccountInfo().getMappedAccount()).getUrl());
     }
     else {
         accountFinished(s);
@@ -67,25 +64,10 @@ void HandelsbankenParser::processAccount(const AccountJob &accountJob)
 
 HandelsbankenParser::~HandelsbankenParser()
 {
-    delete accountPage;
 }
 
-void HandelsbankenParser::parseAccountTables()
+void HandelsbankenParser::parseAccountTables(const QVariant &res)
 {
-    const QString accountListParser = R"(
-            var accDiv = document.getElementById("account_cards_m");
-            var tables = accDiv.getElementsByTagName("table");
-            var rows = tables[0].tBodies[0].rows;
-            var accArr = [];
-            for(var i = 0; i < rows.length; i++) {
-                var href = rows[i].cells[0].getElementsByTagName("a")[0].href;
-                var number = rows[i].cells[0].getElementsByTagName("span")[0].innerHTML.split('-')[1].trim();
-                accArr.push({Link:href, Name:rows[i].cells[0].innerText.trim(), Number:number});
-            }
-            accArr;)";
-
-    QVariant res = accountPage->mainFrame()->evaluateJavaScript(accountListParser);
-
     QList<QVariant> list = res.toList();
     for(int i = 0; i < list.size(); i++)
     {
@@ -95,34 +77,17 @@ void HandelsbankenParser::parseAccountTables()
         account.setName(map["Name"].toString());
         account.setNumber(map["Number"].toString());
         account.setKey(map["Number"].toString().replace(" ", ""));
+        qDebug() << "Account " << account.getName() << " " << account.getUrl() << " " << account.getKey();
         accountMap[account.getKey()] = account;
     }
+
+    loggedInOk = true;
+    emit loginFinished(true);
+    ld->closeLoginDialog();
 }
 
-bool HandelsbankenParser::parseStatements(QWebFrame* view)
+void HandelsbankenParser::parseStatements(const QVariant &res)
 {
-    QString transactionParser = R"(
-            var accDiv = document.getElementsByTagName("form");
-            var transArr = [];
-            for(var j = 0; j < accDiv.length; j++) {
-                if("accounttransactions" == accDiv[j].getAttribute("name")) {
-                    var tables = accDiv[j].getElementsByTagName("table");
-                    var rows = tables[12].tBodies[0].rows;
-                    for(var i = 2; i < rows.length; i++) {
-                        var trans = rows[i];
-                        var date = trans.cells[2].innerText;
-                        var name = trans.cells[3].innerText;
-                        var sum  = trans.cells[4].innerText;
-                        var extra = "Empty";
-                        transArr.push({Name:name, Date:date, Sum:sum, Extra:extra});
-                    }
-                }
-            }
-            transArr;)";
-
-
-    QVariant res = view->evaluateJavaScript(transactionParser);
-
     QList<QVariant> list = res.toList();
     for(int i = 0; i < list.size(); i++)
     {
@@ -134,26 +99,9 @@ bool HandelsbankenParser::parseStatements(QWebFrame* view)
         quint16 crc1 = qChecksum(barr.data(), barr.length());
         addStatement(s, date, map["Name"].toString(), map["Sum"].toString(), "memo", crc1);
     }
-    return true;
-}
+    accountFinished(s);
 
-void HandelsbankenParser::loadFinished(bool ok)
-{
-    if(ok)
-    {
-        qDebug() << "LOAD Finished mainwindow" << accountPage->mainFrame()->url();
-
-        if(accountPage->currentFrame() == accountPage->mainFrame()->childFrames()[0])
-        {
-            if(parseStatements(accountPage->mainFrame()->childFrames()[0])) {
-                accountFinished(s);
-            }
-        }
-    }
-    else
-    {
-        qDebug() << "Failed to load page";
-    }
+    return;
 }
 
 void HandelsbankenParser::getAccountList(QList<BankAccountInfo> &accList)
@@ -165,17 +113,12 @@ void HandelsbankenParser::login_loadFinished(bool ok)
 {
     if(ok)
     {
-        qDebug() << "HandelsbankenParser::login_loadFinished start " << accountPage->mainFrame()->url();
+        qDebug() << "HandelsbankenParser::login_loadFinished start " << accountPage->getUrl();
   
-        if(QUrl("https://ow.handelsbanken.se/bb/seok/idemstatic/MOVE/MOVE_index_privat.html") == accountPage->mainFrame()->url())
+        if(QUrl("https://ow.handelsbanken.se/bb/seok/idemstatic/MOVE/MOVE_index_privat.html") == accountPage->getUrl())
         {
             qDebug() << "HandelsbankenParser::login_loadFinished Done";
-            parseAccountTables();
-            connect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
             disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)));
-            loggedInOk = true;
-            emit loginFinished(true);
-            ld->closeLoginDialog();
         }
 
         qDebug() << "HandelsbankenParser::login_loadFinished end";
@@ -184,4 +127,13 @@ void HandelsbankenParser::login_loadFinished(bool ok)
     {
         qDebug() << "Failed to load page";
     }
+}
+
+void HandelsbankenParser::webChannelInitialized()
+{
+    qDebug() << "HandelsbankenParser::webChannelInitialized begin";
+
+    accountPage->runJavaScript(nextCommand);
+
+    qDebug() << "HandelsbankenParser::webChannelInitialized end";
 }

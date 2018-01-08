@@ -21,7 +21,6 @@
 #include <QUrl>
 #include <QMap>
 #include <QDate>
-#include <QWebElement>
 #include <QFile>
 #include <QTimer>
 #include <QTextStream>
@@ -37,30 +36,20 @@ public:
     void processAccount(const AccountJob& accountJob);
     void getAccountList(QList<BankAccountInfo> &accList);
     void loginIfNeeded(void);
-
- signals:
-    void newPageLoadedSignal(void);
-    void statementExpandedSignal(void);
       
-private slots:
-    void login_loadFinished(bool ok);
-    void loadFinished(bool ok);
-    void newPageLoaded(void);
-    void statementExpanded(void);
+public slots:
+    void webChannelInitialized();
+    void isLoggedInResponse(const QVariant &res);
+    void parseAccountsResponse(const QVariantList &res);
+    void parseStatementsResponse(const QVariantList &res);
 
 private:
-    void parseAccountTables();
-    void parseStatements(QWebFrame *view);
-    void expandStatement(int rowNr);
-    void findStatementsToExpand(QWebFrame *view);
 
-    QWebPage* accountPage;
     QMap<QString, BankAccountInfo> accountMap;
     MyMoneyStatement* s;
     DateInterval dateInterval;
-    QList<int> rowsToExpand;
     QString closingBalance;
-    bool isFirst;
+    QString nextCommand;
 };
 
 #endif

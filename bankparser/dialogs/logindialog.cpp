@@ -17,8 +17,7 @@
 
 #include "logindialog.h"
 #include "ui_logindialog.h"
-#include <qwebelement.h>
-#include <qwebframe.h>
+#include "debugwebpage.h"
 
 BrowserLoginDialog::BrowserLoginDialog(QWidget *parent) :
     QDialog(parent),
@@ -28,7 +27,7 @@ BrowserLoginDialog::BrowserLoginDialog(QWidget *parent) :
     isOpen = false;
 }
 
-void BrowserLoginDialog::openLoginDialog(QWebPage *webpage, QUrl url)
+void BrowserLoginDialog::openLoginDialog(DebugWebPage *webpage, QUrl url)
 {
     isOpen = true;
     ui->webView->setPage(webpage);

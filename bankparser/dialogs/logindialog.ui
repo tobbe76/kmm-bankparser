@@ -19,7 +19,7 @@
   <property name="modal">
    <bool>false</bool>
   </property>
-  <widget class="QWebView" name="webView" native="true">
+  <widget class="CustomWebView" name="webView" native="true">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -37,9 +37,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QWebView</class>
+   <class>CustomWebView</class>
    <extends>QWidget</extends>
-   <header>QtWebKit/QWebView</header>
+   <header>customwebview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

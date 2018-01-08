@@ -1,12 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QUrl>
-#include <QWebPage>
-#include <QWebFrame>
+//#include <QWebEnginePage>
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
-#include <QWebElement>
 #include <QMouseEvent>
 #include "sebparser.h"
 #include "norwegianparser.h"
@@ -24,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
  //   QWebSettings::setObjectCacheCapacities(0, 0, 0);
-    QWebSettings::globalSettings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+ //   QWebSettings::globalSettings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
 
     ui->comboBox->addItems(ParserFactory::supportedParsers());
     ui->comboBox->addItem("RunAll");
@@ -40,7 +38,6 @@ void MainWindow::webView_loadFinished(bool arg1)
 {
   qDebug() << "LoginDialog::webView_loadFinished start" << arg1;
 
-//  currentParser->isLoginFinished();
 
   qDebug() << "LoginDialog::webView_loadFinished end";
 }
@@ -100,7 +97,7 @@ void MainWindow::on_testStartButton_clicked()
     }
     else if(name == "SEB")
     {
-        accounts.append(KmmAccountInfo("Hus", "5048 00375 66", "Seb", "ID3", QDate::currentDate(), QDate::currentDate(), name, "50440105730"));
+        accounts.append(KmmAccountInfo("Hus", "5048 00375 66", "Seb", "ID3", QDate::currentDate(), QDate::currentDate(), name, "50480037566"));
     }
     else if(name == "NORWEGIAN")
     {
@@ -108,7 +105,7 @@ void MainWindow::on_testStartButton_clicked()
     }
     else if(name == "SWEDBANK")
     {
-        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "Swedbank", "ID5", QDate::currentDate(), QDate::currentDate(), name, "12345678"));
+        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "Swedbank", "ID5", QDate::currentDate(), QDate::currentDate(), name, "1234-5,987654321-9"));
     }
     else if(name == "HANDELSBANKEN")
     {

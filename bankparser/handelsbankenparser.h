@@ -21,7 +21,6 @@
 #include <QUrl>
 #include <QMap>
 #include <QDate>
-#include <QWebElement>
 #include <QFile>
 #include <QTimer>
 #include <QTextStream>
@@ -37,20 +36,22 @@ public:
     void processAccount(const AccountJob& accountJob);
     void getAccountList(QList<BankAccountInfo> &accList);
     void loginIfNeeded(void);
-      
+
+public slots:
+    void parseAccountTables(const QVariant &res);
+    void parseStatements(const QVariant &res);
+    void webChannelInitialized();
+
 private slots:
     void login_loadFinished(bool ok);
-    void loadFinished(bool ok);
 
 private:
-    void parseAccountTables();
-    bool parseStatements(QWebFrame *view);
     
-    QWebPage* accountPage;
     QMap<QString, BankAccountInfo> accountMap;
     MyMoneyStatement* s;
     DateInterval dateInterval;
     bool loggedInOk;
+    QString nextCommand;
 };
 
 #endif

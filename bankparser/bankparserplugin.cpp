@@ -72,6 +72,8 @@ BankparserPlugin::BankparserPlugin(QObject *parent, const QVariantList&) :
     KMyMoneyPlugin::OnlinePlugin(),
     d(new Private)
 {
+  Q_INIT_RESOURCE(files);
+  
   setComponentData(BankparserFactory::componentData());
   setXMLFile("kmm_bankparser.rc");
 

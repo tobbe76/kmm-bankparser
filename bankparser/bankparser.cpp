@@ -17,6 +17,11 @@
 
 #include "bankparser.h"
 #include "logindialog.h"
+#ifdef USE_WEBENGINE
+#include <QWebEngineScriptCollection>
+#else
+#include <QWebFrame>
+#endif
 
 bool PendingAccounJobs::isPendingJob() const
 {
@@ -33,13 +38,76 @@ void PendingAccounJobs::addJob(const AccountJob &job)
     jobList.append(job);
 }
 
+QString BankParser::readFile(QString fileName) {
+    QFile apiFile(fileName);
+    if(!apiFile.open(QIODevice::ReadOnly))
+        qDebug()<<"Couldn't load fileName: " << fileName;
+    QString str = QString::fromLatin1(apiFile.readAll());
+    apiFile.close();
+
+    return str;
+}
 
 BankParser::BankParser()
 {
+    qDebug() << "BankParser::BankParser begin";
+
     isParsing = false;
     waitingOp = 0;
     connect(this, SIGNAL(loginFinished(bool)), this, SLOT(loginFinishedSlot(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
 
+    accountPage = new DebugWebPage(this);
+
+#ifdef USE_WEBENGINE
+    channel_ = new QWebChannel(accountPage);
+    //attach it to the QWebEnginePage
+    accountPage->setWebChannel(channel_);
+
+    QString qwebchannel = readFile(":/qtwebchannel/qwebchannel.js");
+    QString common = readFile(":/files/js/common.js");
+
+    qwebchannel.append(common);
+
+    qwebchannel.append("console.log(\"QWEBCHANNEL LOADED\");");
+
+
+    QWebEngineScriptCollection &scc = accountPage->scripts();
+    QWebEngineScript sc;
+    sc.setSourceCode(qwebchannel);
+    sc.setWorldId(0);
+    scc.insert(sc);
+
+    channel_->registerObject(QStringLiteral("jshelper"), this);
+#else
+    script = "function bpClick(el) {"
+            "var event = document.createEvent('Event');"
+            "event.initEvent('click', true, true);"
+            "el.dispatchEvent(event);"
+            "}";
+    connect(accountPage->mainFrame(), SIGNAL(javaScriptWindowObjectCleared()), this, SLOT(attachObject()), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+    connect(accountPage->mainFrame(), SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)), static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+
+
+#endif
+
+    qDebug() << "BankParser::BankParser begin";
+
+}
+
+BankParser::BankParser(QString javaScriptFile) :
+    BankParser()
+{
+    QString js = readFile(javaScriptFile);
+#ifdef USE_WEBENGINE
+
+    QWebEngineScriptCollection &scc = accountPage->scripts();
+    QWebEngineScript sc;
+    sc.setSourceCode(js);
+    sc.setWorldId(0);
+    scc.insert(sc);
+#else
+    script += js;
+#endif
 }
 
 void BankParser::accountFinished(MyMoneyStatement *s)
@@ -92,6 +160,7 @@ void BankParser::getAccountList()
 }
 
 void BankParser::loginFinishedSlot(bool result) {
+    Q_UNUSED(result);
     qDebug() << "BankParser::loginFinishedSlot BEGIN";
     if(waitingOp == 1)
     {
@@ -112,3 +181,23 @@ void BankParser::loginFinishedSlot(bool result) {
     qDebug() << "BankParser::loginFinishedSlot END";
 
 }
+
+void BankParser::webChannelInitialized()
+{
+    qDebug() << "BankParser::webChannelInitialized EMPTY";
+}
+#ifdef USE_WEBKIT
+void BankParser::attachObject() {
+    qDebug() << "BankParser::attachObject begin";
+
+    accountPage->mainFrame()->addToJavaScriptWindowObject("jshelper", this);
+    accountPage->runJavaScript(script);
+    qDebug() << "BankParser::attachObject end";
+}
+void BankParser::loadFinished(bool res) {
+    Q_UNUSED(res);
+    qDebug() << "BankParser::loadFinished begin" << accountPage->mainFrame()->url();
+    webChannelInitialized();
+    qDebug() << "BankParser::loadFinished end";
+}
+#endif

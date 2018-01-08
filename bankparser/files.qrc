@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/files">
+        <file>js/swedbank.js</file>
+        <file>js/common.js</file>
+        <file>js/handelsbanken.js</file>
+        <file>js/norwegian.js</file>
+        <file>js/seb.js</file>
+    </qresource>
+</RCC>

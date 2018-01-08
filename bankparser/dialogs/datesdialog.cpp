@@ -17,8 +17,6 @@
 
 #include "datesdialog.h"
 #include "ui_datesdialog.h"
-#include <qwebelement.h>
-#include <qwebframe.h>
 
 DatesDialog::DatesDialog(const KmmAccountInfo &kmmAccountInfo, QWidget *parent) :
     QDialog(parent),
@@ -76,8 +74,9 @@ void DatesDialog::setDatesOk() {
     ui->toDate->setToolTip("");
 }
 
-void DatesDialog::on_toDate_userDateChanged(const QDate &date)
+void DatesDialog::on_toDate_dateChanged(const QDate &date)
 {
+    Q_UNUSED(date);
     if(ui->fromDate->date() <= ui->toDate->date()) {
         setDatesOk();
     }
@@ -89,11 +88,13 @@ void DatesDialog::on_toDate_userDateChanged(const QDate &date)
     }
 }
 
-void DatesDialog::on_fromDate_userDateChanged(const QDate &date)
+void DatesDialog::on_fromDate_dateChanged(const QDate &date)
 {
+    Q_UNUSED(date);
+
     if(ui->fromDate->date() <= ui->toDate->date()) {
         setDatesOk();
-   }
+    }
     else {
         QPalette palette;
         palette.setColor(QPalette::Text,Qt::red);

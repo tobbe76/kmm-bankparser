@@ -3,14 +3,23 @@
 # Project created by QtCreator 2017-05-08T10:12:21
 #
 #-------------------------------------------------
+CONFIG += use_webengine
 
 QT       += core gui
-QT       += webkit
-QT       += webkitwidgets
 QT       += widgets
+
+lessThan(QT_MAJOR_VERSION, 5) {
+    QT += webkitwidgets
+    QT += webkit
+    DEFINES += USE_WEBKIT
+} else {
+    QT += webenginewidgets
+    DEFINES += USE_WEBENGINE
+}
 
 TARGET = testParser
 TEMPLATE = app
+
 
 INCLUDEPATH += ../bankparser
 INCLUDEPATH += ../bankparser/dialogs
@@ -36,6 +45,7 @@ SOURCES += main.cpp\
   ../bankparser/dialogs/logindialog.cpp
 
 HEADERS  += mainwindow.h \
+    ../bankparser/customwebview.h \
     ../bankparser/sebparser.h \
     ../bankparser/kmmaccountinfo.h \
     ../bankparser/bankaccountinfo.h \
@@ -53,8 +63,6 @@ HEADERS  += mainwindow.h \
     ../bankparser/dialogs/mapaccountdialog.h \
     kmymoneyplugin.h
 
-
-
 FORMS    += mainwindow.ui
 FORMS    += ../bankparser/dialogs/kmmaccountinfowidget.ui
 FORMS    += ../bankparser/dialogs/logindialog.ui
@@ -62,7 +70,9 @@ FORMS    += ../bankparser/dialogs/mapaccountdialog.ui
 FORMS    += ../bankparser/dialogs/datesdialog.ui
 
 RESOURCES += \
-    testsupport.qrc
+    testsupport.qrc \
+    ../bankparser/files.qrc
 
 DISTFILES += \
-    testLogin.html
+    testLogin.html \
+    ../bankparser/sebTransParser.js
