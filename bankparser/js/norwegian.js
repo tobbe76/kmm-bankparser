@@ -2,6 +2,7 @@
 var newestYear = 0;
 var oldestYear = 0;
 var accArr = [];
+var first = 0;
 
 function handleStatements() {
     var accDiv = document.getElementById("transactions");
@@ -28,7 +29,7 @@ function handleStatements() {
 
 function selectYear(year) {
     console.log("Select year " + year.toString());
-    document.getElementsByName("YearList")[0].value = "2017";
+    document.getElementsByName("YearList")[0].value = year.toString();
     var event = document.createEvent('Event');
     event.initEvent('change', true, true);
     document.getElementsByName("YearList")[0].dispatchEvent(event);
@@ -36,14 +37,17 @@ function selectYear(year) {
 }
 
 function selectYearPending() {
-    $( document ).ajaxStop(handleStatements);
-    selectYear(newestYear);
+    if(first == 1) {
+        first = 0;
+        $( document ).ajaxStop(handleStatements);
+        selectYear(newestYear);
+    }
 }
 
 function parseStatements(nYear, oYear) {
-    console.log("mmmmmmmmmmmmmm parseStatements");
+    console.log("parseStatements");
+    first = 1;
     newestYear = nYear;
     oldestYear = oYear;
-    console.log("Pending");
     $( document ).ajaxStop(selectYearPending);
 }

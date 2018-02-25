@@ -51,9 +51,8 @@ void NorwegianParser::processAccount(const AccountJob &accountJob)
     this->dateInterval = accountJob.getDateInterval();
     if(accountMap.contains(accountJob.getAccountInfo().getMappedAccount())) {
         s->m_accountId = accountJob.getAccountInfo().getId();
-        nextCommand = QString("parseStatements(\"%1\", \"%2\");").arg(dateInterval.getNewestDate().year(),
-                                                                      dateInterval.getOldestDate().year());
-
+        nextCommand = QString("parseStatements(%1, %2);").arg(dateInterval.getNewestDate().toString("yyyy"),
+                                                              dateInterval.getOldestDate().toString("yyyy"));
         qDebug() << "Load url " << accountMap.value(accountJob.getAccountInfo().getMappedAccount()).getUrl();
         accountPage->loadPage(accountMap.value(accountJob.getAccountInfo().getMappedAccount()).getUrl());
     }
