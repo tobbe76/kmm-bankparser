@@ -62,6 +62,68 @@ BankParser* ParserFactory::getParser(const QString& name)
   return NULL;
 }
 
+QPixmap ParserFactory::getPixmap(const QString& name)
+{
+  if(name == "SEB")
+  {
+      return QPixmap(":/files/logo/Seb.png");
+  }
+  else if(name == "NORWEGIAN")
+  {
+      return QPixmap(":/files/logo/Norwegian.png");
+  }
+  else if(name == "SWEDBANK")
+  {
+      return QPixmap(":/files/logo/Swedbank.png");
+  }
+  else if(name == "HANDELSBANKEN")
+  {
+      return QPixmap(":/files/logo/Handelsbanken.png");
+  }
+#ifdef TEST_BANK
+  else if(name == "TESTBANK1")
+  {
+      return QPixmap(":/files/logo/Seb.png");
+  }
+  else if(name == "TESTBANK2")
+  {
+      return QPixmap(":/files/logo/Seb.png");
+  }
+#endif
+  return QPixmap();
+}
+
+QIcon ParserFactory::getIcon(const QString& name)
+{
+  if(name == "SEB")
+  {
+      return QIcon(":/files/logo/Seb_small.png");
+  }
+  else if(name == "NORWEGIAN")
+  {
+      return QIcon(":/files/logo/Norwegian_small.png");
+  }
+  else if(name == "SWEDBANK")
+  {
+      return QIcon(":/files/logo/Swedbank_small.png");
+  }
+  else if(name == "HANDELSBANKEN")
+  {
+      return QIcon(":/files/logo/Handelsbanken_small.png");
+  }
+#ifdef TEST_BANK
+  else if(name == "TESTBANK1")
+  {
+      return QIcon(":/files/logo/Seb_small.png");
+  }
+  else if(name == "TESTBANK2")
+  {
+      return QIcon(":/files/logo/Seb_small.png");
+  }
+#endif
+  return QIcon();
+}
+
 QStringList ParserFactory::supportedParsers()
 {
   QStringList list;

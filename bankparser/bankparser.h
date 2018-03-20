@@ -22,6 +22,7 @@
 #include <QMap>
 #include <QFile>
 #include <QTimer>
+#include <QIcon>
 #include <QTextStream>
 #include "kmymoneyplugin.h"
 #include "bankaccountinfo.h"

@@ -57,13 +57,21 @@ MapAccountDialog::MapAccountDialog(const KmmAccountInfo& kmmAccountInfo, QWidget
 {
     ui->setupUi(this);
     ui->bankparserBox->addItem("Select Bank");
-    ui->bankparserBox->addItems(ParserFactory::supportedParsers());
+    int c = 1;
+    QStringList parsers = ParserFactory::supportedParsers();
+    for ( const auto& i : parsers  )
+    {
+        ui->bankparserBox->addItem(i);
+        ui->bankparserBox->setItemIcon(c, ParserFactory::getIcon(i));
+        c++;
+    }
     ui->accInfoWidget->setAccountInfo(kmmAccountInfo);
     bank = kmmAccountInfo.getMappedBank();
     accountKey = kmmAccountInfo.getMappedAccount();
 
     accountListModel = new AccountListModel();
     ui->bankAccList->setModel(accountListModel);
+    ui->bankparserBox->setFocus();
     connect(ui->bankparserBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(bankparserBox_currentIndexChanged(QString)));
 }
 

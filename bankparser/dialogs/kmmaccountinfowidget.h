@@ -23,13 +23,29 @@
 #include "kmmaccountinfo.h"
 #include <QAbstractTableModel>
 
-class KmmAccountTableModel : public QAbstractTableModel
+class KmmAccountModelLocal : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    KmmAccountTableModel(QObject *parent = 0) : QAbstractTableModel(parent) {}
+    KmmAccountModelLocal(QObject *parent = 0) : QAbstractTableModel(parent) {}
     void setAccountList(const KmmAccountInfo& acc);
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    int columnCount(const QModelIndex &parent) const;
+    QVariant data(const QModelIndex &index, int role) const;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const;
+
+private:
+    KmmAccountInfo accInfo;
+};
+
+class KmmAccountModelRemote : public QAbstractTableModel
+{
+    Q_OBJECT
+
+public:
+    KmmAccountModelRemote(QObject *parent = 0) : QAbstractTableModel(parent) {}
     void setMappedBank(const QString& bank);
     void setMappedAccount(const QString &accountKey);
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
@@ -39,7 +55,9 @@ public:
                         int role = Qt::DisplayRole) const;
 
 private:
-    KmmAccountInfo accInfo;
+    QString bank;
+    QString accountKey;
+
 };
 
 
@@ -62,7 +80,9 @@ public:
 
 private:
     Ui::KmmAccountInfoWidget *ui;
-    KmmAccountTableModel* tableModel;
+    KmmAccountModelLocal* tableModelLocal;
+    KmmAccountModelRemote* tableModelRemote;
+
 };
 
 #endif

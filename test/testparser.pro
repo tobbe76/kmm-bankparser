@@ -7,6 +7,7 @@ CONFIG += use_webengine
 
 QT       += core gui
 QT       += widgets
+QT       += svg
 
 lessThan(QT_MAJOR_VERSION, 5) {
     QT += webkitwidgets

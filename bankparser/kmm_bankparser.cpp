@@ -15,7 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "bankparserplugin.h"
+#include "kmm_bankparser.h"
 
 // ----------------------------------------------------------------------------
 // QT Includes
@@ -49,12 +49,12 @@
 #include "datesdialog.h"
 #include "dateinterval.h"
 
-K_PLUGIN_FACTORY(BankparserFactory, registerPlugin<BankparserPlugin>();)
+K_PLUGIN_FACTORY(BankparserFactory, registerPlugin<Kmm_Bankparser>();)
 K_EXPORT_PLUGIN(BankparserFactory("kmm_bankparser"))
 
 using KWallet::Wallet;
 
-class BankparserPlugin::Private
+class Kmm_Bankparser::Private
 {
 public:
   QList<MyMoneyStatement> m_statementlist;
@@ -62,7 +62,7 @@ public:
   DateInterval dateInterval;
 };
 
-BankparserPlugin::BankparserPlugin(QObject *parent, const QVariantList&) :
+Kmm_Bankparser::Kmm_Bankparser(QObject *parent, const QVariantList&) :
     KMyMoneyPlugin::Plugin(parent, "KMyMoney BANKPARSER"),
     /*
      * the string in the line above must be the same as
@@ -81,45 +81,41 @@ BankparserPlugin::BankparserPlugin(QObject *parent, const QVariantList&) :
   // For ease announce that we have been loaded.
   qDebug("KMyMoney bankparser plugin loaded");
 }
-
-BankparserPlugin::~BankparserPlugin()
+Kmm_Bankparser
+Kmm_Bankparser::~Kmm_Bankparser()
 {
-  qDebug("Destructor called ");
   delete d;
 }
 
-const MyMoneyAccount& BankparserPlugin::account(const QString& key, const QString& value) const
+const MyMoneyAccount& Kmm_Bankparser::account(const QString& key, const QString& value) const
 {
   qDebug() << "account " << key << " "  << value;
   return statementInterface()->account(key, value);
 }
 
-void BankparserPlugin::protocols(QStringList& protocolList) const
+void Kmm_Bankparser::protocols(QStringList& protocolList) const
 {
   protocolList.clear();
   protocolList << "WWW";
 }
 
-QWidget* BankparserPlugin::accountConfigTab(const MyMoneyAccount& acc, QString& name)
+QWidget* Kmm_Bankparser::accountConfigTab(const MyMoneyAccount& acc, QString& name)
 {
   Q_UNUSED(acc);
   name = i18n("Online settings");
   return NULL;
 }
 
-MyMoneyKeyValueContainer BankparserPlugin::onlineBankingSettings(const MyMoneyKeyValueContainer& current)
+MyMoneyKeyValueContainer Kmm_Bankparser::onlineBankingSettings(const MyMoneyKeyValueContainer& current)
 {
-  qDebug() << "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM onlineBankingSettings";
   MyMoneyKeyValueContainer kvp(current);
   // keep the provider name in sync with the one found in kmm_sebimport.desktop
   kvp["provider"] = "KMyMoney BANKPARSER";
   return kvp;
 }
 
-bool BankparserPlugin::mapAccount(const MyMoneyAccount& acc, MyMoneyKeyValueContainer& settings)
+bool Kmm_Bankparser::mapAccount(const MyMoneyAccount& acc, MyMoneyKeyValueContainer& settings)
 {
-  Q_UNUSED(acc);
-
   qDebug() << "Map account " << acc.number() << "name " << acc.name() << " ID " << acc.id();
   KmmAccountInfo accountInfo(acc.number(), acc.name(), acc.institutionId(), acc.id(),
                              acc.lastReconciliationDate(), acc.openingDate(),
@@ -134,11 +130,9 @@ bool BankparserPlugin::mapAccount(const MyMoneyAccount& acc, MyMoneyKeyValueCont
   return true;
 }
 
-bool BankparserPlugin::updateAccount(const MyMoneyAccount& acc, bool moreAccounts)
+bool Kmm_Bankparser::updateAccount(const MyMoneyAccount& acc, bool moreAccounts)
 {
-  Q_UNUSED(moreAccounts);
-
-  qDebug("BankparserPlugin::updateAccount");
+  qDebug("Kmm_Bankparser::updateAccount");
   
   KmmAccountInfo account(acc.number(), acc.name(), acc.institutionId(), acc.id(), acc.lastReconciliationDate(),
                          acc.openingDate(),
@@ -149,7 +143,7 @@ bool BankparserPlugin::updateAccount(const MyMoneyAccount& acc, bool moreAccount
 
   BankParser* bankparser = ParserFactory::getParser(account.getMappedBank());
   if(bankparser == NULL) {
-    qDebug() << "EPA ERROR NULL";
+    qCritical() << "No parser found for bank: " << account.getMappedBank();
     return false;
   }
 
@@ -179,10 +173,9 @@ bool BankparserPlugin::updateAccount(const MyMoneyAccount& acc, bool moreAccount
   return true;
 }
 
-void BankparserPlugin::accountFinished(MyMoneyStatement* s)
+void Kmm_Bankparser::accountFinished(MyMoneyStatement* s)
 {
   statementInterface()->import(*s);
   qDebug() << "accountFinished " << s->m_accountId;
   delete s;
-  
 }

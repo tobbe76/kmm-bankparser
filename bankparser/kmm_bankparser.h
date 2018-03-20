@@ -36,13 +36,13 @@
 /**
 @author Thorbjorn Larsson
 */
-class BankparserPlugin : public KMyMoneyPlugin::Plugin, public KMyMoneyPlugin::OnlinePlugin
+class Kmm_Bankparser : public KMyMoneyPlugin::Plugin, public KMyMoneyPlugin::OnlinePlugin
 {
   Q_OBJECT
 public:
-  explicit BankparserPlugin(QObject *parent, const QVariantList&);
+  explicit Kmm_Bankparser(QObject *parent, const QVariantList&);
 
-  ~BankparserPlugin();
+  ~Kmm_Bankparser();
 
   /**
     * Returns a pointer to a widget that will be added as tab to

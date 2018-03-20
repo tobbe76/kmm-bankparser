@@ -5,5 +5,13 @@
         <file>js/handelsbanken.js</file>
         <file>js/norwegian.js</file>
         <file>js/seb.js</file>
+        <file>logo/Handelsbanken_small.png</file>
+        <file>logo/Norwegian_small.png</file>
+        <file>logo/Seb_small.png</file>
+        <file>logo/Swedbank_small.png</file>
+        <file>logo/Norwegian.png</file>
+        <file>logo/Seb.png</file>
+        <file>logo/Swedbank.png</file>
+        <file>logo/Handelsbanken.png</file>
     </qresource>
 </RCC>

@@ -17,48 +17,29 @@
 
 #include "kmmaccountinfowidget.h"
 #include "ui_kmmaccountinfowidget.h"
+#include "parserfactory.h"
 
-int KmmAccountTableModel::rowCount(const QModelIndex &parent) const
+int KmmAccountModelLocal::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 10;
+    return 6;
 }
 
-int KmmAccountTableModel::columnCount(const QModelIndex &parent) const
+int KmmAccountModelLocal::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return 2;
 }
 
-void KmmAccountTableModel::setAccountList(const KmmAccountInfo& acc)
+void KmmAccountModelLocal::setAccountList(const KmmAccountInfo& acc)
 {
     beginResetModel();
     accInfo = acc;
     endResetModel();
 }
 
-void KmmAccountTableModel::setMappedBank(const QString &bank)
+QVariant KmmAccountModelLocal::data(const QModelIndex &index, int role) const
 {
-    accInfo.setMappedBank(bank);
-    dataChanged(createIndex(7, 1), createIndex(7, 1));
-}
-
-void KmmAccountTableModel::setMappedAccount(const QString &accountKey)
-{
-    accInfo.setMappedAccount(accountKey);
-    dataChanged(createIndex(8, 1), createIndex(8, 1));
-}
-
-QVariant KmmAccountTableModel::data(const QModelIndex &index, int role) const
-{
-    if(role == Qt::TextAlignmentRole) {
-        if(index.row() == 6)
-        {
-            return Qt::AlignHCenter;
-        }
-    }
-
-
     if (role == Qt::DisplayRole)
     {
         if(index.column() == 0)
@@ -75,12 +56,6 @@ QVariant KmmAccountTableModel::data(const QModelIndex &index, int role) const
                 return "Opened:";
             else if(index.row() == 5)
                 return "Reconciled:";
-            else if(index.row() == 6)
-                return "";
-            else if(index.row() == 7)
-                return "MappedBank:";
-            else if(index.row() == 8)
-                return "MappedAccount:";
         }
 
         if(index.column() == 1)
@@ -97,27 +72,99 @@ QVariant KmmAccountTableModel::data(const QModelIndex &index, int role) const
                 return accInfo.getOpenedDateStr();
             else if(index.row() == 5)
                 return accInfo.getReconciledDateStr();
-            else if(index.row() == 6)
-                return "";
-            else if(index.row() == 7)
-                return accInfo.getMappedBank();
-            else if(index.row() == 8)
-                return accInfo.getMappedAccount();
         }
 
-    }
-    else if (role == Qt::SizeHintRole) {
-        return QVariant();
-     //   return QSize(100, 5);
-    }
-    else
-    {
-        return QVariant();
     }
     return QVariant();
 }
 
-QVariant KmmAccountTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant KmmAccountModelLocal::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    Q_UNUSED(section);
+    Q_UNUSED(orientation);
+
+    if (role == Qt::SizeHintRole) {
+        return QSize(0, 0);
+    }
+    return QVariant();
+}
+
+int KmmAccountModelRemote::rowCount(const QModelIndex &parent) const
+{
+    Q_UNUSED(parent);
+    return 3;
+}
+
+int KmmAccountModelRemote::columnCount(const QModelIndex &parent) const
+{
+    Q_UNUSED(parent);
+    return 2;
+}
+
+void KmmAccountModelRemote::setMappedBank(const QString &bank)
+{
+    beginResetModel();
+    this->bank = bank;
+    endResetModel();
+    dataChanged(createIndex(0, 0), createIndex(0, 0));
+    dataChanged(createIndex(1, 1), createIndex(1, 1));
+}
+
+void KmmAccountModelRemote::setMappedAccount(const QString &accountKey)
+{
+    this->accountKey = accountKey;
+    dataChanged(createIndex(2, 1), createIndex(2, 1));
+}
+
+QVariant KmmAccountModelRemote::data(const QModelIndex &index, int role) const
+{
+    if(role == Qt::TextAlignmentRole) {
+        if(index.row() == 0)
+        {
+            return Qt::AlignHCenter;
+        }
+    }
+
+    if ( role == Qt::DecorationRole ) {
+        if(index.row() == 0 && index.column() == 0) {
+            return ParserFactory::getPixmap(bank);
+        }
+    }
+
+    if (role == Qt::DisplayRole)
+    {
+        if(index.column() == 0)
+        {
+            if(index.row() == 0)
+                return "";
+            else if(index.row() == 1)
+                return "MappedBank:";
+            else if(index.row() == 2)
+                return "MappedAccount:";
+        }
+
+        if(index.column() == 1)
+        {
+            if(index.row() == 0)
+                return "";
+            else if(index.row() == 1)
+                return bank;
+            else if(index.row() == 2)
+                return accountKey;
+        }
+
+    }
+    else if (role == Qt::SizeHintRole) {
+        if(index.row() == 0)
+            return QSize(100, 50);
+        return QVariant();
+     //   return QSize(100, 5);
+    }
+
+    return QVariant();
+}
+
+QVariant KmmAccountModelRemote::headerData(int section, Qt::Orientation orientation, int role) const
 {
     Q_UNUSED(section);
     Q_UNUSED(orientation);
@@ -134,30 +181,41 @@ KmmAccountInfoWidget::KmmAccountInfoWidget(QWidget *parent) :
     ui(new Ui::KmmAccountInfoWidget)
 {
     ui->setupUi(this);
-    tableModel = new KmmAccountTableModel();
+    tableModelLocal = new KmmAccountModelLocal();
+    tableModelRemote = new KmmAccountModelRemote();
 }
 
 void KmmAccountInfoWidget::setAccountInfo(const KmmAccountInfo& info)
 {
-    ui->tableView->setModel(tableModel);
-    tableModel->setAccountList(info);
-    ui->tableView->resizeColumnsToContents();
-    ui->tableView->resizeRowsToContents();
-    ui->tableView->setMinimumSize(ui->tableView->horizontalHeader()->length() + 10, ui->tableView->verticalHeader()->length());
+    ui->tableLocal->setModel(tableModelLocal);
+    tableModelLocal->setAccountList(info);
+    ui->tableLocal->resizeColumnsToContents();
+    ui->tableLocal->resizeRowsToContents();
+    ui->tableLocal->setMinimumSize(ui->tableLocal->horizontalHeader()->length() + 10, ui->tableLocal->verticalHeader()->length());
+
+    ui->tableRemote->setModel(tableModelRemote);
+    tableModelRemote->setMappedBank(info.getMappedBank());
+    tableModelRemote->setMappedAccount(info.getMappedAccount());
+    ui->tableRemote->resizeColumnsToContents();
+    ui->tableRemote->resizeRowsToContents();
+    ui->tableRemote->setMinimumSize(ui->tableRemote->horizontalHeader()->length() + 10, ui->tableRemote->verticalHeader()->length());
+
+    ui->tableRemote->setSpan(0,0,1,2);
 }
 
 void KmmAccountInfoWidget::setMappedBank(const QString& bank)
 {
-    tableModel->setMappedBank(bank);
+    tableModelRemote->setMappedBank(bank);
 }
 
 void KmmAccountInfoWidget::setMappedAccount(const QString& acc)
 {
-    tableModel->setMappedAccount(acc);
+    tableModelRemote->setMappedAccount(acc);
 }
 
 KmmAccountInfoWidget::~KmmAccountInfoWidget()
 {
     delete ui;
-    delete tableModel;
+    delete tableModelLocal;
+    delete tableModelRemote;
 }
