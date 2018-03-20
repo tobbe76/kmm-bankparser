@@ -32,13 +32,16 @@
 
 #include "kmymoneyplugin.h"
 #include "bankparser.h"
-
+#include "mymoneyaccount.h"
+#include "mymoneykeyvaluecontainer.h"
 /**
 @author Thorbjorn Larsson
 */
 class Kmm_Bankparser : public KMyMoneyPlugin::Plugin, public KMyMoneyPlugin::OnlinePlugin
 {
   Q_OBJECT
+  Q_INTERFACES(KMyMoneyPlugin::OnlinePlugin)
+    
 public:
   explicit Kmm_Bankparser(QObject *parent, const QVariantList&);
 
@@ -50,22 +53,25 @@ public:
     * current account is passed as const reference @a acc. @a name references
     * a QString that will receive the name of the tab to be shown in the dialog.
     */
-  QWidget* accountConfigTab(const MyMoneyAccount& acc, QString& name);
+  QWidget* accountConfigTab(const MyMoneyAccount& acc, QString& name) override;
 
   /**
     * Retrieves the online banking settings and updates the password in the KDE wallet.
     * The caller has the choice to pass a MyMoneyKeyValueContainer with the @a current
     * settings. Only those are modified that are used by the plugin.
     */
-  MyMoneyKeyValueContainer onlineBankingSettings(const MyMoneyKeyValueContainer& current);
+  MyMoneyKeyValueContainer onlineBankingSettings(const MyMoneyKeyValueContainer& current) override;
 
   const MyMoneyAccount& account(const QString& key, const QString& value) const;
 
-  void protocols(QStringList& protocolList) const;
+  void protocols(QStringList& protocolList) const override;
 
-  bool mapAccount(const MyMoneyAccount& acc, MyMoneyKeyValueContainer& settings);
-  bool updateAccount(const MyMoneyAccount& acc, bool moreAccounts);
-
+  bool mapAccount(const MyMoneyAccount& acc, MyMoneyKeyValueContainer& settings) override;
+  bool updateAccount(const MyMoneyAccount& acc, bool moreAccounts) override;
+  void plug() override;
+  void unplug() override;
+  void configurationChanged() override;
+  void injectExternalSettings(KMyMoneySettings* p) override;
 protected slots:
   void accountFinished(MyMoneyStatement* s);
   

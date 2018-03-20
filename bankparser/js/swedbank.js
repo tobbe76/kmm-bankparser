@@ -1,8 +1,9 @@
 var mutationObserver;
 
 function accountHandler(mutations) {
+    console.log("accountHandler");
     var accList = document.getElementsByClassName("swed-ui-list__body");
-    if(accList.length > 0) {
+    if(accList.length > 1) {
         var allLinks = document.getElementsByTagName("swed-item");
         var accArr = [];
         var accLists = document.getElementsByClassName("swed-ui-list__body");
@@ -29,6 +30,7 @@ function accountHandler(mutations) {
 }
 
 function parseAccounts() {
+    console.log("parseAccounts");
     mutationObserver = new MutationObserver(accountHandler);
 
     mutationObserver.observe(document, bpMutDef);
@@ -38,6 +40,7 @@ function parseAccounts() {
 }
 
 function statementHandler(mutations) {
+    console.log("statementHandler")
     var tables = document.getElementsByClassName("account-table__table");
     if(tables.length > 0) {
         var transArr = [];

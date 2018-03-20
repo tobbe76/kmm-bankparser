@@ -24,6 +24,7 @@
 #include <QTimer>
 #include <QIcon>
 #include <QTextStream>
+#include "mymoneystatement.h"
 #include "kmymoneyplugin.h"
 #include "bankaccountinfo.h"
 #include "kmmaccountinfo.h"

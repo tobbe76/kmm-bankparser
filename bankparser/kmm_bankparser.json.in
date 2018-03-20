@@ -1,0 +1,21 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "larsson074@gmail.com",
+                "Name": "Thorbjorn Larsson"
+            }
+        ],
+        "Description": "Plugin for swedish banks",
+        "EnabledByDefault": true,
+        "Icon": "network-connect",
+        "Id": "bankparser",
+        "License": "GPL",
+        "Name": "Kmm_bankparser",
+        "ServiceTypes": [
+            "KMyMoney/Plugin"
+        ],
+        "Version": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
+        "Website": "https://kmymoney.org/plugins.html"
+    }
+}

@@ -30,29 +30,22 @@
 // KDE Includes
 
 #include <KPluginFactory>
-#include <KDebug>
-#include <KFile>
-#include <KUrl>
-#include <KAction>
 #include <KMessageBox>
 #include <KActionCollection>
-#include <KWallet/Wallet>
 #include <mymoneyfile.h>
 
 // ----------------------------------------------------------------------------
 // Project Includes
-
-#include "ui_importoption.h"
+#include "mymoneyaccount.h"
+#include "mymoneykeyvaluecontainer.h"
+#include "mymoneystatement.h"
+#include "statementinterface.h"
 #include "mapaccountdialog.h"
 #include "bankparser.h"
 #include "parserfactory.h"
 #include "datesdialog.h"
 #include "dateinterval.h"
-
-K_PLUGIN_FACTORY(BankparserFactory, registerPlugin<Kmm_Bankparser>();)
-K_EXPORT_PLUGIN(BankparserFactory("kmm_bankparser"))
-
-using KWallet::Wallet;
+#include "kmymoneyglobalsettings.h"
 
 class Kmm_Bankparser::Private
 {
@@ -69,19 +62,19 @@ Kmm_Bankparser::Kmm_Bankparser(QObject *parent, const QVariantList&) :
      * X-KDE-PluginInfo-Name and the provider name assigned in
      * BankparserPlugin::onlineBankingSettings()
      */
-    KMyMoneyPlugin::OnlinePlugin(),
     d(new Private)
 {
   Q_INIT_RESOURCE(files);
+
   
-  setComponentData(BankparserFactory::componentData());
+  setComponentName("kmm_bankparser", "kmm_bankparser");
   setXMLFile("kmm_bankparser.rc");
 
   d->useForAll = false;
   // For ease announce that we have been loaded.
   qDebug("KMyMoney bankparser plugin loaded");
 }
-Kmm_Bankparser
+
 Kmm_Bankparser::~Kmm_Bankparser()
 {
   delete d;
@@ -93,17 +86,32 @@ const MyMoneyAccount& Kmm_Bankparser::account(const QString& key, const QString&
   return statementInterface()->account(key, value);
 }
 
+void Kmm_Bankparser::plug()
+{
+}
+
+void Kmm_Bankparser::unplug()
+{
+}
+
+void Kmm_Bankparser::configurationChanged()
+{
+}
+
 void Kmm_Bankparser::protocols(QStringList& protocolList) const
 {
-  protocolList.clear();
-  protocolList << "WWW";
+  protocolList << "bankparser";
 }
 
 QWidget* Kmm_Bankparser::accountConfigTab(const MyMoneyAccount& acc, QString& name)
 {
   Q_UNUSED(acc);
-  name = i18n("Online settings");
+  name = "Online settings";
   return NULL;
+}
+
+void Kmm_Bankparser::injectExternalSettings(KMyMoneySettings* p)
+{
 }
 
 MyMoneyKeyValueContainer Kmm_Bankparser::onlineBankingSettings(const MyMoneyKeyValueContainer& current)
@@ -179,3 +187,7 @@ void Kmm_Bankparser::accountFinished(MyMoneyStatement* s)
   qDebug() << "accountFinished " << s->m_accountId;
   delete s;
 }
+
+K_PLUGIN_FACTORY_WITH_JSON(Kmm_bankparserFactory, "kmm_bankparser.json", registerPlugin<Kmm_Bankparser>();)
+
+#include "kmm_bankparser.moc"
