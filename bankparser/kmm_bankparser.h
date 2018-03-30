@@ -62,8 +62,6 @@ public:
     */
   MyMoneyKeyValueContainer onlineBankingSettings(const MyMoneyKeyValueContainer& current) override;
 
-  const MyMoneyAccount& account(const QString& key, const QString& value) const;
-
   void protocols(QStringList& protocolList) const override;
 
   bool mapAccount(const MyMoneyAccount& acc, MyMoneyKeyValueContainer& settings) override;

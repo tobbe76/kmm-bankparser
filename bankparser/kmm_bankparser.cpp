@@ -80,12 +80,6 @@ Kmm_Bankparser::~Kmm_Bankparser()
   delete d;
 }
 
-const MyMoneyAccount& Kmm_Bankparser::account(const QString& key, const QString& value) const
-{
-  qDebug() << "account " << key << " "  << value;
-  return statementInterface()->account(key, value);
-}
-
 void Kmm_Bankparser::plug()
 {
 }
@@ -112,6 +106,7 @@ QWidget* Kmm_Bankparser::accountConfigTab(const MyMoneyAccount& acc, QString& na
 
 void Kmm_Bankparser::injectExternalSettings(KMyMoneySettings* p)
 {
+  Q_UNUSED(p);
 }
 
 MyMoneyKeyValueContainer Kmm_Bankparser::onlineBankingSettings(const MyMoneyKeyValueContainer& current)
