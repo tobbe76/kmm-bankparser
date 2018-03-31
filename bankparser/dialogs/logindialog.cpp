@@ -30,6 +30,7 @@ BrowserLoginDialog::BrowserLoginDialog(QWidget *parent) :
 void BrowserLoginDialog::openLoginDialog(DebugWebPage *webpage, QUrl url)
 {
     isOpen = true;
+    webpage->setUrl(QUrl("about:blank"));
     ui->webView->setPage(webpage);
     ui->webView->load(url);
     setModal(true);
@@ -43,11 +44,16 @@ BrowserLoginDialog::~BrowserLoginDialog()
 
 void BrowserLoginDialog::closeLoginDialog(void)
 {
-  done(0);
-  isOpen = false;
+    done(0);
 }
 
 bool BrowserLoginDialog::isDialogOpen(void)
 {
     return isOpen;
+}
+
+void BrowserLoginDialog::on_BrowserLoginDialog_finished(int result)
+{
+    Q_UNUSED(result);
+    isOpen = false;
 }

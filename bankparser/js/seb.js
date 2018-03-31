@@ -62,16 +62,20 @@ function findStatementsToExpand() {
     Sys.WebForms.PageRequestManager.getInstance().remove_endRequest(findStatementsToExpand);
     transToExpandArr = [];
     var accDiv = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_DataTable");
-    var tables = accDiv.getElementsByTagName("table");
-    var transArr = [];
-    var rows = tables[0].tBodies[0].rows;
-    for(var i = 2; i < rows.length; i = i +2) {
-        if(rows[i+1].cells[1].getElementsByClassName("key-value-list").length == 0) {
-            transToExpandArr.push(i);
+    if(accDiv !== null) {
+        var tables = accDiv.getElementsByTagName("table");
+        var rows = tables[0].tBodies[0].rows;
+        for(var i = 2; i < rows.length; i = i +2) {
+            if(rows[i+1].cells[1].getElementsByClassName("key-value-list").length == 0) {
+                transToExpandArr.push(i);
+            }
         }
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandStatement);
+        expandStatement();
     }
-    Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandStatement);
-    expandStatement();
+    else { //No transactions return empty
+        jshelper.parseStatementsResponse(transArr);
+    }
 }
 
 function parseStatements(nDate, oDate) {

@@ -62,7 +62,8 @@ HEADERS  += mainwindow.h \
     ../bankparser/debugwebpage.h \
     ../bankparser/parserfactory.h \
     ../bankparser/dialogs/mapaccountdialog.h \
-    kmymoneyplugin.h
+    kmymoneyplugin.h \
+    mymoneystatement.h
 
 FORMS    += mainwindow.ui
 FORMS    += ../bankparser/dialogs/kmmaccountinfowidget.ui

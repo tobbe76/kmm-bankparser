@@ -38,6 +38,9 @@ public:
     void closeLoginDialog(void);
     bool isDialogOpen();
 
+private slots:
+    void on_BrowserLoginDialog_finished(int result);
+
 private:
     Ui::BrowserLoginDialog *ui;
     bool isOpen;

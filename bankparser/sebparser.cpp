@@ -125,6 +125,7 @@ void SebParser::isLoggedInResponse(const QVariant &res) {
         ld->closeLoginDialog();
     }
     else {
+        qDebug() << "SebParser::isLoggedInResponse Logged in NOK" << ld->isDialogOpen();
         if(!ld->isDialogOpen()) {
             ld->openLoginDialog(accountPage, QUrl("https://privat.ib.seb.se/wow/1000/1000/wow1020.aspx"));
         }

@@ -107,7 +107,7 @@ install(FILES kmm_bankparser.rc
         DESTINATION  ${DATA_INSTALL_DIR}/kmm_bankparser)
 
 install(TARGETS kmm_bankparser
-        DESTINATION ${PLUGIN_INSTALL_DIR})
+        DESTINATION ${PLUGIN_INSTALL_DIR}/kmymoney)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/kmm_bankparser.desktop
         DESTINATION ${SERVICES_INSTALL_DIR})
