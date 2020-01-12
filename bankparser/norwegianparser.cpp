@@ -51,10 +51,19 @@ void NorwegianParser::processAccount(const AccountJob &accountJob)
     this->dateInterval = accountJob.getDateInterval();
     if(accountMap.contains(accountJob.getAccountInfo().getMappedAccount())) {
         s->m_accountId = accountJob.getAccountInfo().getId();
-        nextCommand = QString("parseStatements(%1, %2);").arg(dateInterval.getNewestDate().toString("yyyy"),
-                                                              dateInterval.getOldestDate().toString("yyyy"));
-        qDebug() << "Load url " << accountMap.value(accountJob.getAccountInfo().getMappedAccount()).getUrl();
-        accountPage->loadPage(accountMap.value(accountJob.getAccountInfo().getMappedAccount()).getUrl());
+        nextCommand = QString("parseStatements();");
+        QString oldest = dateInterval.getOldestDate().toString("yyyy-MM-dd");
+        QString newest = dateInterval.getNewestDate().toString("yyyy-MM-dd");
+
+        QString baseUrl = "https://www.banknorwegian.se/MyPage2/Transaction/GetTransactionsFromTo";
+        QString account = "?accountNo=" + accountJob.getAccountInfo().getMappedAccount();
+        QString o1      = "&getLastDays=false&fromLastEOC=false";
+        QString from    = "&dateFrom=" + oldest;
+        QString to      = "&dateTo=" + newest;
+        QString o2      = "&coreDown=false";
+        QUrl url = QUrl(baseUrl + account + o1 + from + to + o2);
+        qDebug() << "Load url " << url;
+        accountPage->loadPage(url);
     }
     else {
         accountFinished(s);
@@ -69,14 +78,22 @@ NorwegianParser::~NorwegianParser()
     delete accountPage;
 }
 
-void NorwegianParser::parseAccountTables()
+void NorwegianParser::parseAccountsResponse(const QVariantList &res)
 {
-    BankAccountInfo account;
-    account.setUrl(QUrl("https://www.banknorwegian.se/MinSida/Creditcard/Transactions"));
-    account.setName("Norwegian Card");
-    account.setNumber("12345678");
-    account.setKey("12345678");
-    accountMap[account.getKey()] = account;
+    QList<QVariant> list = res;
+    for(int i = 0; i < list.size(); i++)
+    {
+        QMap<QString, QVariant> map = list[i].toMap();
+        BankAccountInfo account;
+        account.setUrl(QUrl(map["Link"].toString()));
+        account.setName(map["Name"].toString());
+        account.setNumber(map["Number"].toString());
+        account.setKey(map["Number"].toString().replace(" ", ""));
+        qDebug() << "Account " << account.getName() << " " << account.getKey();
+        accountMap[account.getKey()] = account;
+    }
+
+    emit loginFinished(true);
 }
 
 void NorwegianParser::parseStatementsResponse(const QVariantList &res)
@@ -108,10 +125,10 @@ void NorwegianParser::login_loadFinished(bool ok)
     if(QUrl("https://www.banknorwegian.se/MinSida") == accountPage->getUrl())
     {
         qDebug() << "NorwegianParser::isLoginFinished Done";
-        parseAccountTables();
+        nextCommand = "parseAccounts();";
+        accountPage->loadPage(QUrl("https://www.banknorwegian.se/MinSida/Creditcard/Transactions"));
 
         disconnect(accountPage, SIGNAL(loadFinished(bool)), this, SLOT(login_loadFinished(bool)));
-        emit loginFinished(true);
         ld->closeLoginDialog();
     }
     else {
@@ -122,6 +139,8 @@ void NorwegianParser::login_loadFinished(bool ok)
 
     qDebug() << "NorwegianParser::isLoginFinished end";
 }
+
+//https://www.banknorwegian.se/MyPage2/Transaction/GetTransactionsFromTo?accountNo=10292846001&getLastDays=false&fromLastEOC=false&dateFrom=2018-02-01&dateTo=2019-03-24&coreDown=false
 
 void NorwegianParser::webChannelInitialized()
 {

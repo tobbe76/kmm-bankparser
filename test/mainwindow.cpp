@@ -101,11 +101,11 @@ void MainWindow::on_testStartButton_clicked()
     }
     else if(name == "NORWEGIAN")
     {
-        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "Norwegian", "ID5", QDate::currentDate(), QDate::currentDate(), name, "12345678"));
+        accounts.append(KmmAccountInfo("Norwegiancc", "10292846001", "Norwegian", "ID5", QDate::currentDate(), QDate::currentDate(), name, "10292846001"));
     }
     else if(name == "SWEDBANK")
     {
-        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "Swedbank", "ID5", QDate::currentDate(), QDate::currentDate(), name, "1234-5,987654321-9"));
+        accounts.append(KmmAccountInfo("Norwegiancc", "10292846001", "Swedbank", "ID5", QDate::currentDate(), QDate::currentDate(), name, "1234-5,987654321-9"));
     }
     else if(name == "HANDELSBANKEN")
     {
@@ -121,11 +121,11 @@ void MainWindow::on_testStartButton_clicked()
     }
     else if(name == "TESTBANK1")
     {
-        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "TESTBANK1", "ID5", QDate::currentDate(), QDate::currentDate(), name, "500.1111"));
+        accounts.append(KmmAccountInfo("Norwegiancc", "10292846001", "TESTBANK1", "ID5", QDate::currentDate(), QDate::currentDate(), name, "500.1111"));
     }
     else if(name == "TESTBANK2")
     {
-        accounts.append(KmmAccountInfo("Norwegiancc", "12345678", "TESTBANK2", "ID5", QDate::currentDate(), QDate::currentDate(), name, "500.1111"));
+        accounts.append(KmmAccountInfo("Norwegiancc", "10292846001", "TESTBANK2", "ID5", QDate::currentDate(), QDate::currentDate(), name, "500.1111"));
     }
     else if(name == "TESTBANKs")
     {

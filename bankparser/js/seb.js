@@ -4,94 +4,105 @@
 
 var transToExpandArr = [];
 var transArr = [];
+var g_nDate;
+var g_oDate;
+
+var decodeHtmlEntity = function(str) {
+  return str.replace(/&#(\d+);/g, function(match, dec) {
+    return String.fromCharCode(dec);
+  });
+};
+
+function getExtraString(j) {
+    extraStr = "";
+    var keys = Object.keys(j);
+    for(var i=0; i<keys.length; i++){
+        if(typeof j[keys[i]] === "object") {
+            extraStr += getExtraString(j[keys[i]])
+        }
+        else {
+            if(String(j[keys[i]]).length > 0) {
+                extraStr += keys[i] + ":" + j[keys[i]] + "\n";
+            }
+        }
+    }
+    return extraStr;
+}
 
 function handleStatements() {
     console.log("handleStatements ");
 
-    var accDiv = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_DataTable");
-    var tables = accDiv.getElementsByTagName("table");
-    var rows = tables[0].tBodies[0].rows;
-    for(var i = 0; i < rows.length; i = i +2) {
-        var trans = rows[i];
-        if(trans.cells.length > 4) {
-            var date = trans.cells[1].innerText;
-            var name = trans.cells[2].innerText.split('/')[0];
-            var sum  = trans.cells[4].innerText;
-            var balance = trans.cells[5].innerText;
-            if(sum.length == 0) {
-                sum = trans.cells[3].innerText;
-            }
-            var extra = "";
-            var valList = rows[i+1].cells[1].getElementsByClassName("key-value-list");
-            for(var j = 0; j < valList.length; j = j +1) {
-                extra += valList[j].innerText;
-            }
-            transArr.push({Name:name, Date:date, Sum:sum, Extra:extra, Balance:balance});
-        }
-    }
-    var nextButton = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_BTN_NEXT");
-    if(nextButton) {
-        console.log("click next" + nextButton.outerHTML);
-        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(findStatementsToExpand);
-        document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_BTN_NEXT").click();
-    }
-    else {
-        console.log("finsished");
-        jshelper.parseStatementsResponse(transArr);
-    }
-}
+    console.log(this.responseText);
 
-function expandStatement() {
-    console.log("expandStatement " +  transToExpandArr.length);
+    var jsonData = JSON.parse(this.responseText);
+    for(var i = 0; i < jsonData.account_transactions.length; i++) {
+        var trans = jsonData.account_transactions[i];
+        var date = trans.posting_date;
+        var name = trans.descriptive_text;
+        var sum = String(trans.transaction_amount.amount).replace(".", ",");
+        var balance = String(trans.balance_after_transaction).replace(".", ",");
+        var extra = getExtraString(trans);
 
-    if(transToExpandArr.length == 0) {
-        Sys.WebForms.PageRequestManager.getInstance().remove_endRequest(expandStatement);
-        handleStatements();
-    }
-    else {
-        var accDiv = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_DataTable");
-        var tables = accDiv.getElementsByTagName("table");
-        var rows = tables[0].tBodies[0].rows;
-        bpClick(rows[transToExpandArr.pop()]);
-    }
-}
+        if(trans.has_details) {
+            var id = trans.id;
+            id = id.replace("=", "%3D");
+            id = id.replace("=", "%3D");
+            id = id.replace("=", "%3D");
 
-function findStatementsToExpand() {
-    console.log("findStatementsToExpand");
+            var base = "https://privat.ib.seb.se/wow/microsite/accountsweb/_api/base/api";
+            var hash = window.location.hash;
+            var url = base + hash.substr(1) + "?transactionId=" + id;
+            console.log(url);
+            xmlhttp=new XMLHttpRequest();
+            xmlhttp.open("GET", url, false);
+            xmlhttp.send();
+            console.log(xmlhttp.responseText);
 
-    Sys.WebForms.PageRequestManager.getInstance().remove_endRequest(findStatementsToExpand);
-    transToExpandArr = [];
-    var accDiv = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_DataTable");
-    if(accDiv !== null) {
-        var tables = accDiv.getElementsByTagName("table");
-        var rows = tables[0].tBodies[0].rows;
-        for(var i = 2; i < rows.length; i = i +2) {
-            if(rows[i+1].cells[1].getElementsByClassName("key-value-list").length == 0) {
-                transToExpandArr.push(i);
+            var data = JSON.parse(xmlhttp.responseText);
+            extra += "\n" + getExtraString(data.data);
+            name = data.data.descriptive_text;
+            if(data.data.transaction_type.text === "Swishbetalning") {
+                console.log("SWISH");
+                if(parseInt(sum) > 0) {
+                    name = data.data.additional_info.sender_name;
+                }
+                else {
+                    name = data.data.additional_info.receiver_name;
+                }
             }
         }
-        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandStatement);
-        expandStatement();
+        transArr.push({Name:decodeHtmlEntity(name), Date:date, Sum:sum, Extra:extra, Balance:balance});
+        console.log(date + " " + sum + " " + name + " " + balance)
     }
-    else { //No transactions return empty
-        jshelper.parseStatementsResponse(transArr);
-    }
+    console.log("finsished");
+    jshelper.parseStatementsResponse(transArr);
 }
 
-function parseStatements(nDate, oDate) {
-    transArr = [];
-    console.log("parseStatements " + nDate + " " + oDate);
-    Sys.WebForms.PageRequestManager.getInstance().add_endRequest(findStatementsToExpand);
-    var updSearch  = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_UpdSearch");
-    var butts = updSearch.getElementsByClassName("m-button--primary")
-    var newestDate = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_T1");
-    var oldestDate = document.getElementById("IKPMaster_MainPlaceHolder_ucAccountEvents_T2");
-    newestDate.value = nDate;
-    oldestDate.value = oDate;
-    bpClick(butts[0]);
+function parseStatements2(nDate, oDate) {
+    var base = "https://privat.ib.seb.se/wow/microsite/accountsweb/_api/base/api";
+    var hash = window.location.hash;
+    var url = base + hash.substr(1) + "/search";
+    console.log("Post url: " + url);
+    xhr=new XMLHttpRequest();
+    xhr.addEventListener("load", handleStatements);
+    xhr.open('POST', url, true)
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    var sn = oDate.split("-");
+    var so = nDate.split("-");
+
+    dd = {"filters":{"date":{"start":{"year":parseInt(sn[0]),"month":parseInt(sn[1]),"day":parseInt(sn[2])},
+                               "end":{"year":parseInt(so[0]),"month":parseInt(so[1]),"day":parseInt(so[2])}},
+          "type":0},
+          "maxRows":100,"pagingCursor":null};
+    console.log("Post data: " + JSON.stringify(dd));
+    xhr.send(JSON.stringify(dd));
     null;
 }
 
+function parseStatements(nDate, oDate) {
+    setTimeout(parseStatements2, 500, nDate, oDate);
+    null;
+}
 
 function parseAccounts() {
     console.log("parseAccounts");

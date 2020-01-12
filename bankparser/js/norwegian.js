@@ -1,4 +1,3 @@
-
 var newestYear = 0;
 var oldestYear = 0;
 var accArr = [];
@@ -37,6 +36,8 @@ function selectYear(year) {
 }
 
 function selectYearPending() {
+    console.log("selectYearPending");
+
     if(first == 1) {
         first = 0;
         $( document ).ajaxStop(handleStatements);
@@ -44,10 +45,48 @@ function selectYearPending() {
     }
 }
 
-function parseStatements(nYear, oYear) {
+function hoho() {
+    console.log("hoho");
+
+
+
+    var epa = document.getElementsByName("PeriodSelect");
+    console.log("APA " + epa.toString());
+    document.getElementsByName("PeriodSelect")[0].value = '2';
+    var event = document.createEvent('Event');
+    event.initEvent('change', true, true);
+    document.getElementsByName("PeriodSelect")[0].dispatchEvent(event);
+
+    setTimeout(handleStatements, 1000)
+
+}
+
+function parseAccounts() {
+    console.log("parseAccounts2");
+    var data = document.getElementsByTagName("div")[0].getAttribute("data-settings")
+    var json = JSON.parse(data);
+
+    var number = json.pageModels.appPage.customModel.accountNo;
+
+    console.log("push account" + number);
+    accArr.push({Link:"", Name:"Creditcard", Number:number});
+    jshelper.parseAccountsResponse(accArr);
+}
+
+function parseStatements() {
     console.log("parseStatements");
-    first = 1;
-    newestYear = nYear;
-    oldestYear = oYear;
-    $( document ).ajaxStop(selectYearPending);
+    accArr = [];
+
+    var json = JSON.parse(document.body.innerText);
+    json.forEach(function(trans){
+        var name = trans.transactionText;
+        var date = trans.transactionDate.substring(0, 10);
+        var sum = trans.amountFormatted;
+        var type = trans.transactionTypeText;
+        console.log("trans " + name + " " + date);
+
+        accArr.push({Name:name, Date:date, Sum:sum, Extra:type});
+
+    });
+    jshelper.parseStatementsResponse(accArr);
 }

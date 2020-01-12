@@ -38,6 +38,7 @@ public:
     void loginIfNeeded(void);
 
 public slots:
+    void parseAccountsResponse(const QVariantList &res);
     void parseStatementsResponse(const QVariantList &res);
     void webChannelInitialized();
     
